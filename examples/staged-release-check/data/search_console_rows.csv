@@ -1,0 +1,4 @@
+query,page,clicks,impressions,ctr,position
+configuration checklist,/docs/configuration-checklist,2,180,0.011,12.4
+ci workflow example,/examples/ci-workflow,0,95,0,18.2
+getting started,/docs/getting-started,30,120,0.25,1.6

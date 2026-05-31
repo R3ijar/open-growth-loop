@@ -1,0 +1,4 @@
+status,type,asset,primary_query,cta,owner_note
+published,guide,/guides/plugin-migration,plugin migration guide,Read the migration steps,Existing guide with search demand
+published,docs,/docs/api-reference,api reference,Open the reference,Reference page
+planned,example,/examples/custom-adapter,custom adapter example,Copy the adapter,Queued example

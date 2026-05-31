@@ -1,0 +1,4 @@
+search_term,url,clicks,shown,ctr,rank
+plugin migration guide,/guides/plugin-migration,1,210,0.005,10.5
+custom adapter example,/examples/custom-adapter,0,90,0,18.5
+api reference,/docs/api-reference,22,150,0.147,2.4

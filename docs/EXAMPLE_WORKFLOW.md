@@ -2,6 +2,12 @@
 
 This walkthrough uses the sample CSVs in `data/` to show what Open Growth Loop does for a maintainer.
 
+For additional runnable examples, see `examples/`:
+
+- `examples/staged-release-check`
+- `examples/funnel-dropoff`
+- `examples/aliased-search-export`
+
 ## Scenario
 
 An OSS project has:

@@ -1,0 +1,5 @@
+[schema_aliases.search_rows]
+search_term = "query"
+url = "page"
+shown = "impressions"
+rank = "position"

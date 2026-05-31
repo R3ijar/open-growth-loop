@@ -1,0 +1,4 @@
+status,type,asset,primary_query,cta,owner_note
+published,docs,/docs/getting-started,getting started,Try the quickstart,Core onboarding page
+staged,guide,/docs/configuration-checklist,configuration checklist,Open a setup issue,Needs public release verification
+planned,example,/examples/ci-workflow,ci workflow example,Copy the workflow,Useful maintainer example

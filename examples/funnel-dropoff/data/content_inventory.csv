@@ -1,0 +1,4 @@
+status,type,asset,primary_query,cta,owner_note
+published,docs,/docs/getting-started,get started with project,Install the package,Primary onboarding page
+published,example,/examples/local-config,local config example,Copy the example,Common setup question
+planned,guide,/guides/editor-setup,editor setup,Open the setup guide,Queued improvement

@@ -1,0 +1,7 @@
+date,asset,event,count
+2026-05-20,/docs/getting-started,view,240
+2026-05-20,/docs/getting-started,cta,4
+2026-05-20,/docs/getting-started,conversion,0
+2026-05-20,/examples/local-config,view,60
+2026-05-20,/examples/local-config,cta,8
+2026-05-20,/examples/local-config,conversion,2
