@@ -32,6 +32,32 @@ def write_json(path: Path, payload: object) -> None:
     path.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
 
 
+def dated_report_path(latest_path: Path, report_date: str | None = None) -> Path:
+    filename = latest_path.name
+    if filename.startswith("latest-"):
+        filename = filename.removeprefix("latest-")
+    return latest_path.parent / "history" / f"{report_date or today_iso()}-{filename}"
+
+
+def write_text_report(latest_path: Path, content: str, report_date: str | None = None) -> tuple[Path, Path]:
+    history_path = dated_report_path(latest_path, report_date)
+    ensure_parent(latest_path)
+    ensure_parent(history_path)
+    latest_path.write_text(content, encoding="utf-8")
+    history_path.write_text(content, encoding="utf-8")
+    return latest_path, history_path
+
+
+def write_json_report(latest_path: Path, payload: object, report_date: str | None = None) -> tuple[Path, Path]:
+    history_path = dated_report_path(latest_path, report_date)
+    content = json.dumps(payload, indent=2, sort_keys=True)
+    ensure_parent(latest_path)
+    ensure_parent(history_path)
+    latest_path.write_text(content, encoding="utf-8")
+    history_path.write_text(content, encoding="utf-8")
+    return latest_path, history_path
+
+
 def read_json(path: Path) -> object:
     return json.loads(path.read_text(encoding="utf-8"))
 

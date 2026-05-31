@@ -13,16 +13,6 @@ Acceptance criteria:
 - Validation reports which aliases were applied.
 - Tests cover at least one alias per input type.
 
-## Write Dated Report History
-
-The CLI currently writes `latest-*` report files under `outbox/`, which is useful for daily use but not enough for comparing work over time.
-
-Acceptance criteria:
-
-- Existing `latest-*` paths continue to work.
-- Dated reports are deterministic and easy to diff.
-- Tests or smoke coverage verify the new paths.
-
 ## Add More Sample Workspaces
 
 The bundled sample data shows one docs workflow, but maintainers may understand the tool faster with more concrete examples.
@@ -48,3 +38,7 @@ Acceptance criteria:
 ### Add A Release Evidence Checklist
 
 Implemented in the planner, generated prompt, docs, and tests.
+
+### Write Dated Report History
+
+Implemented for plans, prompts, query backlogs, and experiment reviews while preserving existing `latest-*` paths.

@@ -7,7 +7,7 @@ from pathlib import Path
 
 from .events import import_aggregate_events
 from .experiments import render_reviews_markdown, review_experiments, track_plan
-from .io_utils import ensure_parent, first_existing, read_json, write_json
+from .io_utils import dated_report_path, first_existing, read_json, write_json_report, write_text_report
 from .planner import build_daily_plan, default_data_paths, write_plan_reports
 from .prompts import render_codex_prompt
 from .query_backlog import build_query_backlog, render_query_backlog
@@ -136,7 +136,18 @@ def run_plan(args: argparse.Namespace, workspace: Path) -> None:
         minimum_views=args.minimum_views,
     )
     md_path, json_path = write_plan_reports(plan, workspace / "outbox" / "plans")
-    print(json.dumps({"plan": asdict(plan), "markdown": str(md_path), "json": str(json_path)}, indent=2))
+    print(
+        json.dumps(
+            {
+                "plan": asdict(plan),
+                "markdown": str(md_path),
+                "json": str(json_path),
+                "markdown_history": str(dated_report_path(md_path)),
+                "json_history": str(dated_report_path(json_path)),
+            },
+            indent=2,
+        )
+    )
 
 
 def run_query_backlog(args: argparse.Namespace, workspace: Path) -> None:
@@ -144,9 +155,8 @@ def run_query_backlog(args: argparse.Namespace, workspace: Path) -> None:
     search_rows = Path(args.search_rows) if args.search_rows else default_search_rows
     opportunities = build_query_backlog(search_rows, args.minimum_impressions)
     out_path = workspace / "outbox" / "query-backlog.md"
-    ensure_parent(out_path)
-    out_path.write_text(render_query_backlog(opportunities), encoding="utf-8")
-    print(json.dumps({"opportunities": len(opportunities), "markdown": str(out_path)}, indent=2))
+    latest_path, history_path = write_text_report(out_path, render_query_backlog(opportunities))
+    print(json.dumps({"opportunities": len(opportunities), "markdown": str(latest_path), "markdown_history": str(history_path)}, indent=2))
 
 
 def run_track_experiment(args: argparse.Namespace, workspace: Path) -> None:
@@ -170,10 +180,20 @@ def run_review_experiments(args: argparse.Namespace, workspace: Path) -> None:
     events = Path(args.events) if args.events else default_events
     reviews = review_experiments(ledger, search_rows, events, args.minimum_impressions, args.minimum_views)
     out_path = workspace / "outbox" / "experiment-review.md"
-    ensure_parent(out_path)
-    out_path.write_text(render_reviews_markdown(reviews), encoding="utf-8")
-    write_json(workspace / "outbox" / "experiment-review.json", [asdict(review) for review in reviews])
-    print(json.dumps({"reviews": len(reviews), "markdown": str(out_path)}, indent=2))
+    latest_path, history_path = write_text_report(out_path, render_reviews_markdown(reviews))
+    json_path, json_history_path = write_json_report(workspace / "outbox" / "experiment-review.json", [asdict(review) for review in reviews])
+    print(
+        json.dumps(
+            {
+                "reviews": len(reviews),
+                "markdown": str(latest_path),
+                "markdown_history": str(history_path),
+                "json": str(json_path),
+                "json_history": str(json_history_path),
+            },
+            indent=2,
+        )
+    )
 
 
 def run_prompt(args: argparse.Namespace, workspace: Path) -> None:
@@ -183,6 +203,5 @@ def run_prompt(args: argparse.Namespace, workspace: Path) -> None:
     plan = DailyPlan(**read_json(plan_json))
     prompt = render_codex_prompt(plan)
     out_path = workspace / "outbox" / "prompts" / "latest-prompt.md"
-    ensure_parent(out_path)
-    out_path.write_text(prompt, encoding="utf-8")
-    print(json.dumps({"prompt": str(out_path)}, indent=2))
+    latest_path, history_path = write_text_report(out_path, prompt)
+    print(json.dumps({"prompt": str(latest_path), "prompt_history": str(history_path)}, indent=2))

@@ -5,7 +5,7 @@ from pathlib import Path
 
 from .events import EventRollup, read_event_rollups
 from .inventory import ContentItem, next_planned_item, read_inventory, staged_items
-from .io_utils import ensure_parent, first_existing, write_json
+from .io_utils import first_existing, write_json_report, write_text_report
 from .search import SearchOpportunity, rank_search_opportunities, read_search_rows
 
 
@@ -127,11 +127,10 @@ def build_daily_plan(
 
 
 def write_plan_reports(plan: DailyPlan, out_dir: Path) -> tuple[Path, Path]:
-    ensure_parent(out_dir / "placeholder")
     json_path = out_dir / "latest-plan.json"
     md_path = out_dir / "latest-plan.md"
-    write_json(json_path, asdict(plan))
-    md_path.write_text(render_plan_markdown(plan), encoding="utf-8")
+    write_json_report(json_path, asdict(plan))
+    write_text_report(md_path, render_plan_markdown(plan))
     return md_path, json_path
 
 

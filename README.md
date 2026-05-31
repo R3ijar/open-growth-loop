@@ -28,6 +28,8 @@ In practice, the tool reads local CSVs and writes reviewable Markdown/JSON files
 - an experiment review
 - a focused prompt for Codex or another coding assistant
 
+Each report keeps the familiar `latest-*` path for daily use and also writes a dated copy under `history/` so maintainers can compare decisions over time.
+
 It does not publish changes, call hosted analytics APIs, or send your project data anywhere.
 
 ## Why This Exists

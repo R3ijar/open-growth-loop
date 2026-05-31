@@ -47,6 +47,7 @@ This writes:
 
 ```text
 outbox/query-backlog.md
+outbox/history/YYYY-MM-DD-query-backlog.md
 ```
 
 The backlog ranks Search Console rows that look actionable, such as:
@@ -67,6 +68,8 @@ This writes:
 ```text
 outbox/plans/latest-plan.md
 outbox/plans/latest-plan.json
+outbox/plans/history/YYYY-MM-DD-plan.md
+outbox/plans/history/YYYY-MM-DD-plan.json
 ```
 
 With the sample data, the planner chooses the staged checklist first:
@@ -91,6 +94,7 @@ This writes:
 
 ```text
 outbox/prompts/latest-prompt.md
+outbox/prompts/history/YYYY-MM-DD-prompt.md
 ```
 
 The prompt asks Codex or another coding assistant to make one focused, reviewable change. It includes the action, asset, reason, confidence, next steps, and evidence, while reminding the assistant not to invent adoption claims or cross privacy boundaries. For staged work, those next steps include a release-evidence checklist: verify the public URL or artifact, confirm discoverability from the expected public surface, avoid unverified adoption claims, and record the artifact before outcome review.
