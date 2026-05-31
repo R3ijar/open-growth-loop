@@ -162,6 +162,8 @@ ogl track-experiment --workspace .
 
 Then give `outbox/prompts/latest-prompt.md` or the plan output to Codex and work on one concrete change.
 
+For a full walkthrough using the bundled sample CSVs, see [docs/EXAMPLE_WORKFLOW.md](docs/EXAMPLE_WORKFLOW.md).
+
 ## Decision Rules
 
 The planner prioritizes:
