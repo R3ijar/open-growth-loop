@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+outbox/
+*.egg-info/
+dist/
+build/
+
+# Local/private operator files
+config.json
+client_secret.json
+token.json
+*.secret.*
+private/

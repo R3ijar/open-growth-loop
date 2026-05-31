@@ -1,0 +1,7 @@
+date,asset,event,count
+2026-05-20,/docs/getting-started,view,80
+2026-05-20,/docs/getting-started,cta,8
+2026-05-20,/docs/getting-started,conversion,2
+2026-05-20,/guides/configuration-checklist,view,45
+2026-05-20,/guides/configuration-checklist,cta,1
+2026-05-20,/examples/github-actions-ci,view,12

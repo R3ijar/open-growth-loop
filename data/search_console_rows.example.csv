@@ -1,0 +1,5 @@
+query,page,clicks,impressions,ctr,position
+example project configuration,/guides/configuration-checklist,2,180,0.011,12.4
+github actions ci example,/examples/github-actions-ci,0,95,0,18.2
+local first analytics,/guides/local-first-analytics,1,160,0.006,9.8
+project name github,/docs/getting-started,30,120,0.25,1.6

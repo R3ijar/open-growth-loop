@@ -1,0 +1,58 @@
+# Maintainer Loop
+
+Open Growth Loop is built around a conservative daily loop.
+
+## 1. Import Aggregate Signals
+
+Use aggregate search rows and aggregate events only. Do not import raw user payloads.
+
+```bash
+ogl import-events --source exports/events.csv --output data/events.csv
+```
+
+## 2. Validate Inputs
+
+```bash
+ogl validate --workspace .
+```
+
+Validation should pass before the planner is trusted.
+
+## 3. Generate One Plan
+
+```bash
+ogl query-backlog --workspace .
+ogl plan --workspace .
+```
+
+The planner chooses one action. That is intentional. Maintainers need less thrash, not a queue of speculative rewrites.
+
+## 4. Track The Baseline
+
+```bash
+ogl track-experiment --workspace .
+```
+
+The ledger records impressions, clicks, views, and conversions before the change.
+
+## 5. Let Codex Help With The Change
+
+```bash
+ogl prompt --workspace .
+```
+
+Use the generated prompt with Codex to make one focused, reviewable change.
+
+## 6. Review Later
+
+```bash
+ogl review-experiments --workspace .
+```
+
+Reviews separate three states:
+
+- not publicly applied
+- insufficient sample
+- directionally positive or needs iteration
+
+This keeps maintainers from rewriting docs based on tiny or stale evidence.

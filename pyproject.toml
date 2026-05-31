@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "open-growth-loop"
+version = "0.1.0"
+description = "A local-first growth and content learning loop for open-source maintainers."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [
+  { name = "Open Growth Loop contributors" }
+]
+keywords = ["growth", "seo", "content", "open-source", "maintainer-tools", "codex"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Software Development :: Quality Assurance",
+  "Topic :: Text Processing"
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/R3ijar/open-growth-loop"
+Repository = "https://github.com/R3ijar/open-growth-loop"
+Issues = "https://github.com/R3ijar/open-growth-loop/issues"
+
+[project.scripts]
+ogl = "open_growth_loop.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

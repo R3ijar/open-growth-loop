@@ -1,0 +1,5 @@
+status,type,asset,primary_query,cta,owner_note
+published,docs,/docs/getting-started,getting started with example project,Try the quickstart,Core onboarding page
+staged,guide,/guides/configuration-checklist,configuration checklist,Open an issue with your setup,Needs public release verification
+planned,example,/examples/github-actions-ci,github actions ci example,Copy the workflow,High-intent example for maintainers
+planned,comparison,/guides/local-first-analytics,local first analytics,Use aggregate events,Privacy-focused education page
