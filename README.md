@@ -219,6 +219,7 @@ Then give `outbox/prompts/latest-prompt.md` or the plan output to Codex and work
 For a full walkthrough using the bundled sample CSVs, see [docs/EXAMPLE_WORKFLOW.md](docs/EXAMPLE_WORKFLOW.md).
 For runnable example workspaces covering release evidence, funnel dropoff, and aliased exports, see [examples/README.md](examples/README.md).
 For the initial public backlog, see [docs/NEXT_ISSUES.md](docs/NEXT_ISSUES.md).
+For release notes, see [CHANGELOG.md](CHANGELOG.md).
 
 ## Decision Rules
 

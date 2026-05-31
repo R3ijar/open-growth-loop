@@ -33,3 +33,15 @@ Implemented runnable fake workspaces for release evidence, funnel dropoff, and a
 ### Add Shipped Artifact Tracking
 
 Implemented `ogl ship` so tracked experiments can move from planned/staged state to shipped evidence before review.
+
+### Add Configurable Thresholds And Plan Explanations
+
+Implemented local threshold settings and decision traces in generated plans.
+
+### Add Weekly Operating Review
+
+Implemented `ogl weekly-review` for inventory and experiment state.
+
+### Add Local Privacy Scan
+
+Implemented `ogl privacy-scan` for private-looking CSV headers and secret-like text.

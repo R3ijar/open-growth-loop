@@ -1,25 +1,32 @@
 # Roadmap
 
-## 0.1
+## 0.1 - Done
 
 - CSV-first daily planner.
 - Privacy-safe aggregate event import.
 - Search Console export opportunity ranking.
 - Content inventory and experiment ledger.
 - Codex-ready prompt generation.
-
-## 0.2
-
 - Config file support for custom schema aliases.
 - Markdown report history by date.
 - Release evidence checklist for docs sites and package pages.
-- Better experiment review windows.
+- Shipped artifact tracking.
+- Weekly operating review.
+- Local privacy scan.
+- Runnable sample workspaces.
+
+## 0.2
+
+- Optional GitHub issue draft export as Markdown.
+- More decision trace detail for competing candidates.
+- Configurable stale-work windows.
+- More sample data shapes for package pages and release notes.
 
 ## 0.3
 
-- Optional GitHub issue creation from daily plans.
+- Optional GitHub issue creation from reviewed drafts.
 - Optional static-site sitemap checks.
-- More examples for OSS documentation, package adoption, and release-note workflows.
+- Optional package registry metadata checks.
 
 ## Principles
 
