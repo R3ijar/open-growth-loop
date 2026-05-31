@@ -93,7 +93,7 @@ This writes:
 outbox/prompts/latest-prompt.md
 ```
 
-The prompt asks Codex or another coding assistant to make one focused, reviewable change. It includes the action, asset, reason, confidence, next steps, and evidence. It also reminds the assistant not to invent adoption claims or cross privacy boundaries.
+The prompt asks Codex or another coding assistant to make one focused, reviewable change. It includes the action, asset, reason, confidence, next steps, and evidence, while reminding the assistant not to invent adoption claims or cross privacy boundaries. For staged work, those next steps include a release-evidence checklist: verify the public URL or artifact, confirm discoverability from the expected public surface, avoid unverified adoption claims, and record the artifact before outcome review.
 
 ## 5. Track And Review Later
 
@@ -123,4 +123,3 @@ Open Growth Loop is deliberately conservative. It avoids:
 - rewriting many docs pages from a noisy signal
 - treating staged work as impact
 - claiming success before enough aggregate evidence exists
-

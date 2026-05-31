@@ -27,6 +27,13 @@ ogl plan --workspace .
 
 The planner chooses one action. That is intentional. Maintainers need less thrash, not a queue of speculative rewrites.
 
+If the plan is `release_evidence`, verify the staged asset before creating another page or example:
+
+- open the public URL or release artifact
+- confirm it is reachable from the expected public surface
+- confirm it avoids unverified adoption or impact claims
+- record the artifact URL before reviewing outcomes
+
 ## 4. Track The Baseline
 
 ```bash

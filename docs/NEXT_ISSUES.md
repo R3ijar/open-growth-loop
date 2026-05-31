@@ -1,6 +1,6 @@
 # Next Issues
 
-This is the initial public backlog for Open Growth Loop. Each item is small enough to become a focused GitHub issue.
+This is the initial public backlog for Open Growth Loop. Each open item is small enough to become a focused GitHub issue.
 
 ## Add Config Support For Schema Aliases
 
@@ -23,16 +23,6 @@ Acceptance criteria:
 - Dated reports are deterministic and easy to diff.
 - Tests or smoke coverage verify the new paths.
 
-## Add A Release Evidence Checklist
-
-The planner can identify staged work that needs release evidence, but maintainers still need concrete checks for verifying that a docs page, example, package page, or project site update is actually public.
-
-Acceptance criteria:
-
-- Checklist stays generic for OSS projects.
-- No hosted crawling or private credentials are required.
-- The generated prompt includes the checklist when action type is `release_evidence`.
-
 ## Add More Sample Workspaces
 
 The bundled sample data shows one docs workflow, but maintainers may understand the tool faster with more concrete examples.
@@ -53,3 +43,8 @@ Acceptance criteria:
 - Exported issue drafts are reviewable Markdown.
 - Any future GitHub API integration is optional and never sends private analytics.
 
+## Completed Recently
+
+### Add A Release Evidence Checklist
+
+Implemented in the planner, generated prompt, docs, and tests.

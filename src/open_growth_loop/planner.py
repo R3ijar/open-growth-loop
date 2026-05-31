@@ -20,6 +20,18 @@ class DailyPlan:
     evidence: dict[str, object]
 
 
+RELEASE_EVIDENCE_CHECKLIST = [
+    "Open the public URL or release artifact for the staged asset.",
+    "Confirm the asset is reachable from the expected public surface, such as docs navigation, README, package metadata, sitemap, or changelog.",
+    "Confirm the published content matches the staged change and avoids unverified adoption or impact claims.",
+    "Record the public artifact URL before tracking or reviewing the experiment.",
+]
+
+
+def release_evidence_checklist() -> list[str]:
+    return list(RELEASE_EVIDENCE_CHECKLIST)
+
+
 def build_daily_plan(
     inventory_path: Path,
     search_rows_path: Path,
@@ -40,11 +52,7 @@ def build_daily_plan(
             title=f"Verify staged release for {item.asset}",
             reason="Staged work should be proven public before creating another asset.",
             confidence="high",
-            next_steps=[
-                "Confirm the public URL works.",
-                "Confirm the asset appears in sitemap or docs navigation if applicable.",
-                "Record the release artifact in the experiment ledger.",
-            ],
+            next_steps=release_evidence_checklist(),
             evidence={"status": item.status, "primary_query": item.primary_query, "owner_note": item.owner_note},
         )
 

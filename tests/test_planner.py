@@ -39,6 +39,8 @@ class PlannerTests(unittest.TestCase):
 
         self.assertEqual(plan.action_type, "release_evidence")
         self.assertEqual(plan.asset, "/docs/staged")
+        self.assertTrue(any("public URL" in step for step in plan.next_steps))
+        self.assertTrue(any("unverified adoption" in step for step in plan.next_steps))
 
     def test_planner_uses_funnel_before_search_when_no_staged_item(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
