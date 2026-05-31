@@ -74,6 +74,30 @@ class PlannerTests(unittest.TestCase):
         self.assertEqual(plan.action_type, "search_striking_distance")
         self.assertEqual(plan.asset, "/docs/setup")
 
+    def test_planner_uses_schema_aliases_for_search_rows(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            inventory_path = root / "inventory.csv"
+            search_path = root / "search.csv"
+            events_path = root / "events.csv"
+            inventory_path.write_text("status,type,asset,primary_query,cta,owner_note\n", encoding="utf-8")
+            search_path.write_text(
+                "search_term,url,clicks,shown,ctr,rank\n"
+                "setup guide,/docs/setup,0,100,0,12\n",
+                encoding="utf-8",
+            )
+            events_path.write_text("date,asset,event,count\n", encoding="utf-8")
+
+            plan = build_daily_plan(
+                inventory_path,
+                search_path,
+                events_path,
+                aliases={"search_rows": {"search_term": "query", "url": "page", "shown": "impressions", "rank": "position"}},
+            )
+
+        self.assertEqual(plan.action_type, "search_striking_distance")
+        self.assertEqual(plan.asset, "/docs/setup")
+
 
 if __name__ == "__main__":
     unittest.main()

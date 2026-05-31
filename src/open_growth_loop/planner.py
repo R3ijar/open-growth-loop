@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 from pathlib import Path
+from typing import Mapping
 
 from .events import EventRollup, read_event_rollups
 from .inventory import ContentItem, next_planned_item, read_inventory, staged_items
@@ -38,10 +39,12 @@ def build_daily_plan(
     events_path: Path,
     minimum_impressions: int = 25,
     minimum_views: int = 25,
+    aliases: Mapping[str, Mapping[str, str]] | None = None,
 ) -> DailyPlan:
-    inventory = read_inventory(inventory_path)
-    search_rows = read_search_rows(search_rows_path)
-    event_rollups = read_event_rollups(events_path)
+    aliases = aliases or {}
+    inventory = read_inventory(inventory_path, aliases.get("content_inventory"))
+    search_rows = read_search_rows(search_rows_path, aliases.get("search_rows"))
+    event_rollups = read_event_rollups(events_path, aliases.get("events"))
 
     staged = staged_items(inventory)
     if staged:

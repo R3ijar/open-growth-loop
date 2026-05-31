@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Mapping
 
 from .io_utils import parse_float, parse_int, read_csv_rows
 
@@ -29,9 +30,9 @@ class SearchOpportunity:
     position: float
 
 
-def read_search_rows(path: Path) -> list[SearchRow]:
+def read_search_rows(path: Path, aliases: Mapping[str, str] | None = None) -> list[SearchRow]:
     rows: list[SearchRow] = []
-    for row in read_csv_rows(path):
+    for row in read_csv_rows(path, aliases):
         rows.append(
             SearchRow(
                 query=row.get("query", "").strip(),

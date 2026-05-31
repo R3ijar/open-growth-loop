@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Mapping
 
 from .search import SearchOpportunity, rank_search_opportunities, read_search_rows
 
 
-def build_query_backlog(search_rows_path: Path, minimum_impressions: int = 25) -> list[SearchOpportunity]:
-    return rank_search_opportunities(read_search_rows(search_rows_path), minimum_impressions)
+def build_query_backlog(search_rows_path: Path, minimum_impressions: int = 25, aliases: Mapping[str, str] | None = None) -> list[SearchOpportunity]:
+    return rank_search_opportunities(read_search_rows(search_rows_path, aliases), minimum_impressions)
 
 
 def render_query_backlog(opportunities: list[SearchOpportunity]) -> str:

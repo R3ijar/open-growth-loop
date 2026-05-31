@@ -4,6 +4,7 @@ import csv
 from dataclasses import dataclass
 from pathlib import Path
 
+from .config import GrowthConfig, apply_header_aliases
 from .events import PRIVATE_COLUMN_HINTS, validate_event_columns
 from .experiments import FIELDS as EXPERIMENT_FIELDS
 from .io_utils import ensure_parent, first_existing, write_csv_rows
@@ -24,6 +25,7 @@ class WorkspaceValidation:
     ok: bool
     checked: list[str]
     errors: list[str]
+    aliases_applied: list[str]
 
 
 DATA_FILES = {
@@ -51,7 +53,7 @@ def init_workspace(workspace: Path, overwrite: bool = False) -> WorkspaceInitRes
     return WorkspaceInitResult(created=created, skipped=skipped)
 
 
-def validate_workspace(workspace: Path) -> WorkspaceValidation:
+def validate_workspace(workspace: Path, config: GrowthConfig | None = None) -> WorkspaceValidation:
     data_dir = workspace / "data"
     paths = {
         "content_inventory": first_existing([data_dir / "content_inventory.csv", data_dir / "content_inventory.example.csv"]),
@@ -68,6 +70,7 @@ def validate_workspace(workspace: Path) -> WorkspaceValidation:
 
     checked: list[str] = []
     errors: list[str] = []
+    aliases_applied: list[str] = []
     for name, path in paths.items():
         if not path.exists():
             errors.append(f"{name}: missing {path}")
@@ -83,27 +86,30 @@ def validate_workspace(workspace: Path) -> WorkspaceValidation:
         if private:
             errors.append(f"{name}: private-looking columns are not allowed: {', '.join(private)}")
 
-        missing = sorted(set(required[name]) - set(header))
+        effective_header, applied = apply_header_aliases(header, config.aliases_for(name) if config else None)
+        aliases_applied.extend(f"{name}.{entry}" for entry in applied)
+
+        missing = sorted(set(required[name]) - set(effective_header))
         if missing:
             errors.append(f"{name}: missing required columns: {', '.join(missing)}")
 
         if name == "events":
             try:
-                validate_event_columns(header)
+                validate_event_columns(effective_header)
             except ValueError as exc:
                 errors.append(f"{name}: {exc}")
 
-    return WorkspaceValidation(ok=not errors, checked=checked, errors=errors)
+    return WorkspaceValidation(ok=not errors, checked=checked, errors=errors, aliases_applied=aliases_applied)
 
 
 def _read_header(path: Path) -> list[str]:
     with path.open("r", encoding="utf-8", newline="") as handle:
         reader = csv.reader(handle)
         try:
-            return [field.strip() for field in next(reader)]
+            return [field.strip().lstrip("\ufeff") for field in next(reader)]
         except StopIteration:
             return []
 
 
 def _normalize_fields(fields: list[str]) -> set[str]:
-    return {field.strip().lower() for field in fields}
+    return {field.strip().lstrip("\ufeff").lower() for field in fields}

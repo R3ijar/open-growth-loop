@@ -4,6 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from open_growth_loop.config import load_config
 from open_growth_loop.workspace import init_workspace, validate_workspace
 
 
@@ -47,6 +48,41 @@ class WorkspaceTests(unittest.TestCase):
 
         self.assertFalse(result.ok)
         self.assertTrue(any("private-looking columns" in error for error in result.errors))
+
+    def test_validate_accepts_and_reports_schema_aliases(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            init_workspace(root)
+            (root / "open-growth-loop.toml").write_text(
+                "[schema_aliases.search_rows]\n"
+                "search_term = \"query\"\n"
+                "url = \"page\"\n"
+                "shown = \"impressions\"\n"
+                "rank = \"position\"\n"
+                "\n"
+                "[schema_aliases.events]\n"
+                "day = \"date\"\n"
+                "path = \"asset\"\n"
+                "kind = \"event\"\n"
+                "total = \"count\"\n",
+                encoding="utf-8",
+            )
+            (root / "data" / "search_console_rows.csv").write_text(
+                "search_term,url,clicks,shown,ctr,rank\n"
+                "setup,/docs/setup,1,100,0.01,9\n",
+                encoding="utf-8-sig",
+            )
+            (root / "data" / "events.csv").write_text(
+                "day,path,kind,total\n"
+                "2026-05-20,/docs/setup,view,50\n",
+                encoding="utf-8-sig",
+            )
+
+            result = validate_workspace(root, load_config(root))
+
+        self.assertTrue(result.ok, result.errors)
+        self.assertIn("search_rows.search_term -> query", result.aliases_applied)
+        self.assertIn("events.total -> count", result.aliases_applied)
 
 
 if __name__ == "__main__":

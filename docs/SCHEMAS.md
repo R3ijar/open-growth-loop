@@ -50,6 +50,26 @@ The importer also maps common aliases such as `page_view`, `cta_click`, and `sig
 
 The importer rejects private-looking columns such as email, user, session, ip, payload, token, key, secret, phone, name, sku, and file.
 
+## Local Schema Aliases
+
+If an export uses different aggregate column names, create `open-growth-loop.toml` in the workspace:
+
+```toml
+[schema_aliases.search_rows]
+search_term = "query"
+url = "page"
+shown = "impressions"
+rank = "position"
+
+[schema_aliases.events]
+day = "date"
+path = "asset"
+kind = "event"
+total = "count"
+```
+
+The left side is the source CSV header. The right side is the canonical Open Growth Loop field. Aliases are local-only, and validation reports which aliases were applied.
+
 ## Experiments
 
 Default path: `data/experiments.csv`

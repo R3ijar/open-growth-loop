@@ -2,17 +2,6 @@
 
 This is the initial public backlog for Open Growth Loop. Each open item is small enough to become a focused GitHub issue.
 
-## Add Config Support For Schema Aliases
-
-Different maintainers export aggregate CSVs with slightly different column names. Today Open Growth Loop expects the default schema names exactly.
-
-Acceptance criteria:
-
-- Core defaults keep working with no config.
-- Config aliases are local-only and do not require secrets.
-- Validation reports which aliases were applied.
-- Tests cover at least one alias per input type.
-
 ## Add More Sample Workspaces
 
 The bundled sample data shows one docs workflow, but maintainers may understand the tool faster with more concrete examples.
@@ -42,3 +31,7 @@ Implemented in the planner, generated prompt, docs, and tests.
 ### Write Dated Report History
 
 Implemented for plans, prompts, query backlogs, and experiment reviews while preserving existing `latest-*` paths.
+
+### Add Config Support For Schema Aliases
+
+Implemented local `open-growth-loop.toml` schema aliases for CSV readers and validation.

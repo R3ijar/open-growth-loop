@@ -47,6 +47,47 @@ class EventImportTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 import_aggregate_events(source, output)
 
+    def test_import_aggregate_events_uses_aliases(self) -> None:
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = root / "events.csv"
+            output = root / "out.csv"
+            source.write_text(
+                "day,path,kind,total\n"
+                "2026-05-20,/docs/start,page_view,2\n"
+                "2026-05-20,/docs/start,cta_click,1\n",
+                encoding="utf-8-sig",
+            )
+
+            rows_written = import_aggregate_events(
+                source,
+                output,
+                {"day": "date", "path": "asset", "kind": "event", "total": "count"},
+            )
+            rollups = read_event_rollups(output)
+
+        self.assertEqual(rows_written, 2)
+        self.assertEqual(rollups[0].views, 2)
+        self.assertEqual(rollups[0].ctas, 1)
+
+    def test_import_aliases_do_not_hide_private_columns(self) -> None:
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = root / "events.csv"
+            output = root / "out.csv"
+            source.write_text(
+                "email,path,kind,total\n"
+                "user@example.com,/docs/start,view,1\n",
+                encoding="utf-8",
+            )
+
+            with self.assertRaises(ValueError):
+                import_aggregate_events(source, output, {"email": "date", "path": "asset", "kind": "event", "total": "count"})
+
 
 if __name__ == "__main__":
     unittest.main()

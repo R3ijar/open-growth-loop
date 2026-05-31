@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Mapping
 
 from .events import event_baseline, read_event_rollups
 from .io_utils import future_iso, read_csv_rows, today_iso, write_csv_rows
@@ -42,11 +43,13 @@ def track_plan(
     review_days: int = 14,
     artifact: str = "",
     note: str = "",
+    aliases: Mapping[str, Mapping[str, str]] | None = None,
 ) -> dict[str, object]:
-    rows = read_csv_rows(ledger_path)
+    aliases = aliases or {}
+    rows = read_csv_rows(ledger_path, aliases.get("experiments"))
     experiment_id = f"{today_iso()}-{len(rows) + 1:03d}"
-    search_rows = read_search_rows(search_rows_path)
-    event_rollups = read_event_rollups(events_path)
+    search_rows = read_search_rows(search_rows_path, aliases.get("search_rows"))
+    event_rollups = read_event_rollups(events_path, aliases.get("events"))
     impressions, clicks = search_baseline(search_rows, plan.asset)
     views, conversions = event_baseline(event_rollups, plan.asset)
     row = {
@@ -75,10 +78,12 @@ def review_experiments(
     events_path: Path,
     minimum_impressions: int = 25,
     minimum_views: int = 25,
+    aliases: Mapping[str, Mapping[str, str]] | None = None,
 ) -> list[ExperimentReview]:
-    rows = read_csv_rows(ledger_path)
-    search_rows = read_search_rows(search_rows_path)
-    event_rollups = read_event_rollups(events_path)
+    aliases = aliases or {}
+    rows = read_csv_rows(ledger_path, aliases.get("experiments"))
+    search_rows = read_search_rows(search_rows_path, aliases.get("search_rows"))
+    event_rollups = read_event_rollups(events_path, aliases.get("events"))
     reviews: list[ExperimentReview] = []
     for row in rows:
         asset = row.get("asset", "")

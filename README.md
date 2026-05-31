@@ -151,6 +151,24 @@ copy data\events.example.csv data\events.csv
 copy data\experiments.example.csv data\experiments.csv
 ```
 
+If your aggregate exports use different column names, add local schema aliases in `open-growth-loop.toml`:
+
+```toml
+[schema_aliases.search_rows]
+search_term = "query"
+url = "page"
+shown = "impressions"
+rank = "position"
+
+[schema_aliases.events]
+day = "date"
+path = "asset"
+kind = "event"
+total = "count"
+```
+
+Aliases only rename local CSV headers into the expected schema. They do not add credentials, call hosted APIs, or relax private-column validation.
+
 ## Daily Loop
 
 Recommended maintainer workflow:

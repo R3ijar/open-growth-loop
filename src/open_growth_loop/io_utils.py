@@ -4,18 +4,31 @@ import csv
 import json
 from datetime import date, timedelta
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, Mapping
+
+from .config import apply_column_aliases
 
 
 def ensure_parent(path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
 
 
-def read_csv_rows(path: Path) -> list[dict[str, str]]:
+def read_csv_rows(path: Path, aliases: Mapping[str, str] | None = None) -> list[dict[str, str]]:
     if not path.exists():
         return []
     with path.open("r", encoding="utf-8", newline="") as handle:
-        return [dict(row) for row in csv.DictReader(handle)]
+        return [apply_column_aliases(row, aliases) for row in csv.DictReader(handle)]
+
+
+def read_csv_header(path: Path) -> list[str]:
+    if not path.exists():
+        return []
+    with path.open("r", encoding="utf-8", newline="") as handle:
+        reader = csv.reader(handle)
+        try:
+            return [field.strip().lstrip("\ufeff") for field in next(reader)]
+        except StopIteration:
+            return []
 
 
 def write_csv_rows(path: Path, fieldnames: list[str], rows: Iterable[dict[str, object]]) -> None:

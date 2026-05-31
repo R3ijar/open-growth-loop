@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Mapping
 
 from .io_utils import read_csv_rows
 
@@ -16,9 +17,9 @@ class ContentItem:
     owner_note: str
 
 
-def read_inventory(path: Path) -> list[ContentItem]:
+def read_inventory(path: Path, aliases: Mapping[str, str] | None = None) -> list[ContentItem]:
     items: list[ContentItem] = []
-    for row in read_csv_rows(path):
+    for row in read_csv_rows(path, aliases):
         items.append(
             ContentItem(
                 status=row.get("status", "").strip().lower(),

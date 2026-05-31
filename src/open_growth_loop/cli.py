@@ -5,6 +5,7 @@ import json
 from dataclasses import asdict
 from pathlib import Path
 
+from .config import GrowthConfig, load_config
 from .events import import_aggregate_events
 from .experiments import render_reviews_markdown, review_experiments, track_plan
 from .io_utils import dated_report_path, first_existing, read_json, write_json_report, write_text_report
@@ -71,24 +72,28 @@ def main() -> None:
 
     args = parser.parse_args()
     workspace = Path(args.workspace or args.global_workspace or ".").resolve()
+    try:
+        config = load_config(workspace)
+    except ValueError as exc:
+        parser.error(str(exc))
 
     if args.command == "status":
-        run_status(workspace)
+        run_status(workspace, config)
     elif args.command == "init":
         run_init(args, workspace)
     elif args.command == "validate":
-        run_validate(workspace)
+        run_validate(workspace, config)
     elif args.command == "plan":
-        run_plan(args, workspace)
+        run_plan(args, workspace, config)
     elif args.command == "query-backlog":
-        run_query_backlog(args, workspace)
+        run_query_backlog(args, workspace, config)
     elif args.command == "import-events":
-        count = import_aggregate_events(Path(args.source), Path(args.output))
+        count = import_aggregate_events(Path(args.source), Path(args.output), config.aliases_for("events"))
         print(json.dumps({"rows_written": count, "output": args.output}, indent=2))
     elif args.command == "track-experiment":
-        run_track_experiment(args, workspace)
+        run_track_experiment(args, workspace, config)
     elif args.command == "review-experiments":
-        run_review_experiments(args, workspace)
+        run_review_experiments(args, workspace, config)
     elif args.command == "prompt":
         run_prompt(args, workspace)
 
@@ -97,7 +102,7 @@ def add_workspace_argument(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--workspace", default="", help="Project workspace containing data/ and outbox/.")
 
 
-def run_status(workspace: Path) -> None:
+def run_status(workspace: Path, config: GrowthConfig) -> None:
     inventory, search_rows, events = default_data_paths(workspace)
     ledger = first_existing([workspace / "data" / "experiments.csv", workspace / "data" / "experiments.example.csv"])
     payload = {
@@ -106,6 +111,7 @@ def run_status(workspace: Path) -> None:
         "search_rows": str(search_rows),
         "events": str(events),
         "experiments": str(ledger),
+        "config": str(config.path) if config.path else "",
         "latest_plan": str(workspace / "outbox" / "plans" / "latest-plan.json"),
     }
     print(json.dumps(payload, indent=2))
@@ -116,14 +122,14 @@ def run_init(args: argparse.Namespace, workspace: Path) -> None:
     print(json.dumps(asdict(result), indent=2))
 
 
-def run_validate(workspace: Path) -> None:
-    result = validate_workspace(workspace)
+def run_validate(workspace: Path, config: GrowthConfig) -> None:
+    result = validate_workspace(workspace, config)
     print(json.dumps(asdict(result), indent=2))
     if not result.ok:
         raise SystemExit(1)
 
 
-def run_plan(args: argparse.Namespace, workspace: Path) -> None:
+def run_plan(args: argparse.Namespace, workspace: Path, config: GrowthConfig) -> None:
     default_inventory, default_search_rows, default_events = default_data_paths(workspace)
     inventory = Path(args.inventory) if args.inventory else default_inventory
     search_rows = Path(args.search_rows) if args.search_rows else default_search_rows
@@ -134,6 +140,7 @@ def run_plan(args: argparse.Namespace, workspace: Path) -> None:
         events,
         minimum_impressions=args.minimum_impressions,
         minimum_views=args.minimum_views,
+        aliases=config.schema_aliases,
     )
     md_path, json_path = write_plan_reports(plan, workspace / "outbox" / "plans")
     print(
@@ -150,16 +157,16 @@ def run_plan(args: argparse.Namespace, workspace: Path) -> None:
     )
 
 
-def run_query_backlog(args: argparse.Namespace, workspace: Path) -> None:
+def run_query_backlog(args: argparse.Namespace, workspace: Path, config: GrowthConfig) -> None:
     _, default_search_rows, _ = default_data_paths(workspace)
     search_rows = Path(args.search_rows) if args.search_rows else default_search_rows
-    opportunities = build_query_backlog(search_rows, args.minimum_impressions)
+    opportunities = build_query_backlog(search_rows, args.minimum_impressions, config.aliases_for("search_rows"))
     out_path = workspace / "outbox" / "query-backlog.md"
     latest_path, history_path = write_text_report(out_path, render_query_backlog(opportunities))
     print(json.dumps({"opportunities": len(opportunities), "markdown": str(latest_path), "markdown_history": str(history_path)}, indent=2))
 
 
-def run_track_experiment(args: argparse.Namespace, workspace: Path) -> None:
+def run_track_experiment(args: argparse.Namespace, workspace: Path, config: GrowthConfig) -> None:
     _, default_search_rows, default_events = default_data_paths(workspace)
     ledger = Path(args.ledger) if args.ledger else workspace / "data" / "experiments.csv"
     search_rows = Path(args.search_rows) if args.search_rows else default_search_rows
@@ -169,16 +176,16 @@ def run_track_experiment(args: argparse.Namespace, workspace: Path) -> None:
     from .planner import DailyPlan
 
     plan = DailyPlan(**payload)
-    row = track_plan(plan, ledger, search_rows, events, args.review_days, args.artifact, args.note)
+    row = track_plan(plan, ledger, search_rows, events, args.review_days, args.artifact, args.note, config.schema_aliases)
     print(json.dumps(row, indent=2))
 
 
-def run_review_experiments(args: argparse.Namespace, workspace: Path) -> None:
+def run_review_experiments(args: argparse.Namespace, workspace: Path, config: GrowthConfig) -> None:
     _, default_search_rows, default_events = default_data_paths(workspace)
     ledger = Path(args.ledger) if args.ledger else first_existing([workspace / "data" / "experiments.csv", workspace / "data" / "experiments.example.csv"])
     search_rows = Path(args.search_rows) if args.search_rows else default_search_rows
     events = Path(args.events) if args.events else default_events
-    reviews = review_experiments(ledger, search_rows, events, args.minimum_impressions, args.minimum_views)
+    reviews = review_experiments(ledger, search_rows, events, args.minimum_impressions, args.minimum_views, config.schema_aliases)
     out_path = workspace / "outbox" / "experiment-review.md"
     latest_path, history_path = write_text_report(out_path, render_reviews_markdown(reviews))
     json_path, json_history_path = write_json_report(workspace / "outbox" / "experiment-review.json", [asdict(review) for review in reviews])
