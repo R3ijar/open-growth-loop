@@ -29,3 +29,7 @@ Implemented local `open-growth-loop.toml` schema aliases for CSV readers and val
 ### Add More Sample Workspaces
 
 Implemented runnable fake workspaces for release evidence, funnel dropoff, and aliased search exports.
+
+### Add Shipped Artifact Tracking
+
+Implemented `ogl ship` so tracked experiments can move from planned/staged state to shipped evidence before review.

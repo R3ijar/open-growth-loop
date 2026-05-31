@@ -6,7 +6,7 @@ Open Growth Loop uses plain CSV files so maintainers can inspect and version the
 
 Default path: `data/content_inventory.csv`
 
-Required columns:
+Current columns:
 
 ```text
 status,type,asset,primary_query,cta,owner_note
@@ -77,7 +77,15 @@ Default path: `data/experiments.csv`
 Required columns:
 
 ```text
-id,status,asset,action_type,planned_on,review_after,baseline_impressions,baseline_clicks,baseline_views,baseline_conversions,artifact,note,outcome
+id,status,asset,action_type,planned_on,review_after,shipped_on,baseline_impressions,baseline_clicks,baseline_views,baseline_conversions,artifact,note,outcome
 ```
 
-`planned` and `staged` experiments are never treated as successful or failed. They remain operational state until a release artifact is recorded and enough aggregate data exists.
+Useful `status` values:
+
+- `planned`
+- `staged`
+- `shipped`
+
+`planned` and `staged` experiments are never treated as successful or failed. Use `ogl ship` to mark a row as `shipped` with an artifact URL or path once the change is public. Only shipped rows with an artifact are eligible for outcome review after enough aggregate data exists.
+
+Legacy ledgers without `shipped_on` are still accepted; the column is added the next time Open Growth Loop writes the ledger.

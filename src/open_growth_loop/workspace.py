@@ -7,6 +7,7 @@ from pathlib import Path
 from .config import GrowthConfig, apply_header_aliases
 from .events import PRIVATE_COLUMN_HINTS, validate_event_columns
 from .experiments import FIELDS as EXPERIMENT_FIELDS
+from .experiments import REQUIRED_FIELDS as EXPERIMENT_REQUIRED_FIELDS
 from .io_utils import ensure_parent, first_existing, write_csv_rows
 
 CONTENT_INVENTORY_FIELDS = ["status", "type", "asset", "primary_query", "cta", "owner_note"]
@@ -65,7 +66,7 @@ def validate_workspace(workspace: Path, config: GrowthConfig | None = None) -> W
         "content_inventory": CONTENT_INVENTORY_FIELDS,
         "search_rows": SEARCH_ROW_FIELDS,
         "events": EVENT_FIELDS,
-        "experiments": EXPERIMENT_FIELDS,
+        "experiments": EXPERIMENT_REQUIRED_FIELDS,
     }
 
     checked: list[str] = []

@@ -50,7 +50,15 @@ ogl prompt --workspace .
 
 Use the generated prompt with Codex to make one focused, reviewable change.
 
-## 6. Review Later
+## 6. Record The Shipped Artifact
+
+```bash
+ogl ship --workspace . --asset /docs/setup --artifact https://example.org/docs/setup
+```
+
+This marks the experiment as `shipped`, records `shipped_on`, and stores the public artifact URL or path. Work without a shipped artifact is not treated as outcome evidence.
+
+## 7. Review Later
 
 ```bash
 ogl review-experiments --workspace .

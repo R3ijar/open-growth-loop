@@ -16,6 +16,7 @@ FIELDS = [
     "action_type",
     "planned_on",
     "review_after",
+    "shipped_on",
     "baseline_impressions",
     "baseline_clicks",
     "baseline_views",
@@ -24,6 +25,8 @@ FIELDS = [
     "note",
     "outcome",
 ]
+
+REQUIRED_FIELDS = [field for field in FIELDS if field != "shipped_on"]
 
 
 @dataclass(frozen=True)
@@ -59,6 +62,7 @@ def track_plan(
         "action_type": plan.action_type,
         "planned_on": today_iso(),
         "review_after": future_iso(review_days),
+        "shipped_on": "",
         "baseline_impressions": impressions,
         "baseline_clicks": clicks,
         "baseline_views": views,
@@ -68,6 +72,40 @@ def track_plan(
         "outcome": "",
     }
     rows.append(row)
+    write_csv_rows(ledger_path, FIELDS, rows)
+    return row
+
+
+def ship_experiment(
+    ledger_path: Path,
+    artifact: str,
+    experiment_id: str = "",
+    asset: str = "",
+    note: str = "",
+    aliases: Mapping[str, Mapping[str, str]] | None = None,
+) -> dict[str, object]:
+    if not artifact.strip():
+        raise ValueError("artifact is required")
+    if not experiment_id.strip() and not asset.strip():
+        raise ValueError("experiment_id or asset is required")
+
+    aliases = aliases or {}
+    rows = read_csv_rows(ledger_path, aliases.get("experiments"))
+    if not rows:
+        raise ValueError(f"no experiments found in {ledger_path}")
+
+    index = _find_experiment_index(rows, experiment_id.strip(), asset.strip())
+    if index is None:
+        target = experiment_id.strip() or asset.strip()
+        raise ValueError(f"no matching experiment found for {target}")
+
+    row = rows[index]
+    row["status"] = "shipped"
+    row["artifact"] = artifact.strip()
+    row["shipped_on"] = today_iso()
+    if note.strip():
+        row["note"] = note.strip()
+    rows[index] = row
     write_csv_rows(ledger_path, FIELDS, rows)
     return row
 
@@ -88,14 +126,14 @@ def review_experiments(
     for row in rows:
         asset = row.get("asset", "")
         status = row.get("status", "planned")
-        if status in {"planned", "staged"}:
+        if status in {"planned", "staged"} or not row.get("artifact", "").strip():
             reviews.append(
                 ExperimentReview(
                     id=row.get("id", ""),
                     asset=asset,
                     status=status,
                     outcome="not_publicly_applied",
-                    reason="Planned or staged work should not be treated as evidence.",
+                    reason="Work without a shipped artifact should not be treated as evidence.",
                 )
             )
             continue
@@ -144,3 +182,17 @@ def render_reviews_markdown(reviews: list[ExperimentReview]) -> str:
             ]
         )
     return "\n".join(lines)
+
+
+def _find_experiment_index(rows: list[dict[str, str]], experiment_id: str, asset: str) -> int | None:
+    if experiment_id:
+        for index, row in enumerate(rows):
+            if row.get("id", "") == experiment_id:
+                return index
+        return None
+
+    matched_index: int | None = None
+    for index, row in enumerate(rows):
+        if row.get("asset", "") == asset:
+            matched_index = index
+    return matched_index

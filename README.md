@@ -18,6 +18,7 @@ The tool is intentionally generic. It does not know about any one product, priva
 - `ogl query-backlog` ranks Search Console rows into maintenance opportunities.
 - `ogl plan` chooses one daily action using conservative rules.
 - `ogl track-experiment` records the action baseline.
+- `ogl ship` records the public artifact once the change is live.
 - `ogl review-experiments` avoids premature winner/loser claims from tiny samples.
 - `ogl prompt` writes a Codex-ready prompt for the next focused change.
 
@@ -115,6 +116,12 @@ Track the latest daily plan as an experiment:
 ogl track-experiment --workspace .
 ```
 
+Record the public artifact after the change ships:
+
+```bash
+ogl ship --workspace . --asset /docs/setup --artifact https://example.org/docs/setup
+```
+
 Review experiments after enough data has accumulated:
 
 ```bash
@@ -178,9 +185,10 @@ ogl import-events --source path\to\aggregate-events.csv --output data\events.csv
 ogl query-backlog --workspace .
 ogl plan --workspace .
 ogl track-experiment --workspace .
+ogl ship --workspace . --asset /docs/setup --artifact https://example.org/docs/setup
 ```
 
-Then give `outbox/prompts/latest-prompt.md` or the plan output to Codex and work on one concrete change.
+Then give `outbox/prompts/latest-prompt.md` or the plan output to Codex and work on one concrete change before recording the public artifact with `ogl ship`.
 
 For a full walkthrough using the bundled sample CSVs, see [docs/EXAMPLE_WORKFLOW.md](docs/EXAMPLE_WORKFLOW.md).
 For runnable example workspaces covering release evidence, funnel dropoff, and aliased exports, see [examples/README.md](examples/README.md).

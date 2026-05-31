@@ -8,6 +8,7 @@ Expected command sequence:
 python -m open_growth_loop --workspace examples/funnel-dropoff validate
 python -m open_growth_loop --workspace examples/funnel-dropoff plan
 python -m open_growth_loop --workspace examples/funnel-dropoff track-experiment
+python -m open_growth_loop --workspace examples/funnel-dropoff ship --asset /docs/getting-started --artifact https://example.org/docs/getting-started
 ```
 
 Expected plan shape:

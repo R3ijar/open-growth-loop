@@ -105,12 +105,18 @@ outbox/prompts/history/YYYY-MM-DD-prompt.md
 
 The prompt asks Codex or another coding assistant to make one focused, reviewable change. It includes the action, asset, reason, confidence, next steps, and evidence, while reminding the assistant not to invent adoption claims or cross privacy boundaries. For staged work, those next steps include a release-evidence checklist: verify the public URL or artifact, confirm discoverability from the expected public surface, avoid unverified adoption claims, and record the artifact before outcome review.
 
-## 5. Track And Review Later
+## 5. Track, Ship, And Review Later
 
 After making the public change, record the baseline:
 
 ```bash
 python -m open_growth_loop --workspace . track-experiment
+```
+
+After the change is public, record the artifact:
+
+```bash
+python -m open_growth_loop --workspace . ship --asset /guides/configuration-checklist --artifact https://example.org/guides/configuration-checklist
 ```
 
 After enough time and aggregate data:
@@ -122,6 +128,7 @@ python -m open_growth_loop --workspace . review-experiments
 The review separates operational state from evidence:
 
 - planned or staged work is not treated as a win
+- shipped work without an artifact is not treated as a win
 - small samples are marked insufficient
 - only observed click or conversion movement becomes directionally positive
 

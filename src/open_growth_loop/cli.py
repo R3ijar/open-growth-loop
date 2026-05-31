@@ -7,7 +7,7 @@ from pathlib import Path
 
 from .config import GrowthConfig, load_config
 from .events import import_aggregate_events
-from .experiments import render_reviews_markdown, review_experiments, track_plan
+from .experiments import render_reviews_markdown, review_experiments, ship_experiment, track_plan
 from .io_utils import dated_report_path, first_existing, read_json, write_json_report, write_text_report
 from .planner import build_daily_plan, default_data_paths, write_plan_reports
 from .prompts import render_codex_prompt
@@ -58,6 +58,14 @@ def main() -> None:
     track.add_argument("--artifact", default="")
     track.add_argument("--note", default="")
 
+    ship = subparsers.add_parser("ship", help="Mark an experiment as publicly shipped with an artifact.")
+    add_workspace_argument(ship)
+    ship.add_argument("--ledger", default="", help="Experiment ledger CSV.")
+    ship.add_argument("--experiment-id", default="", help="Experiment id to mark shipped.")
+    ship.add_argument("--asset", default="", help="Asset to mark shipped. Uses the latest matching row.")
+    ship.add_argument("--artifact", required=True, help="Public URL, release, path, or other artifact evidence.")
+    ship.add_argument("--note", default="", help="Optional note to store on the shipped experiment.")
+
     review = subparsers.add_parser("review-experiments", help="Review experiment outcomes conservatively.")
     add_workspace_argument(review)
     review.add_argument("--ledger", default="", help="Experiment ledger CSV.")
@@ -92,6 +100,8 @@ def main() -> None:
         print(json.dumps({"rows_written": count, "output": args.output}, indent=2))
     elif args.command == "track-experiment":
         run_track_experiment(args, workspace, config)
+    elif args.command == "ship":
+        run_ship(args, workspace, config)
     elif args.command == "review-experiments":
         run_review_experiments(args, workspace, config)
     elif args.command == "prompt":
@@ -177,6 +187,22 @@ def run_track_experiment(args: argparse.Namespace, workspace: Path, config: Grow
 
     plan = DailyPlan(**payload)
     row = track_plan(plan, ledger, search_rows, events, args.review_days, args.artifact, args.note, config.schema_aliases)
+    print(json.dumps(row, indent=2))
+
+
+def run_ship(args: argparse.Namespace, workspace: Path, config: GrowthConfig) -> None:
+    ledger = Path(args.ledger) if args.ledger else workspace / "data" / "experiments.csv"
+    try:
+        row = ship_experiment(
+            ledger,
+            artifact=args.artifact,
+            experiment_id=args.experiment_id,
+            asset=args.asset,
+            note=args.note,
+            aliases=config.schema_aliases,
+        )
+    except ValueError as exc:
+        raise SystemExit(str(exc)) from exc
     print(json.dumps(row, indent=2))
 
 
