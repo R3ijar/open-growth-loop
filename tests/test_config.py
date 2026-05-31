@@ -45,6 +45,37 @@ class ConfigTests(unittest.TestCase):
 
         self.assertEqual(config.aliases_for("events"), {"path": "asset"})
 
+    def test_loads_thresholds_from_workspace_config(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            (root / "open-growth-loop.toml").write_text(
+                "[thresholds]\n"
+                "minimum_impressions = 50\n"
+                "minimum_views = 75\n"
+                "weak_cta_rate = 0.03\n"
+                "review_days = 21\n",
+                encoding="utf-8",
+            )
+
+            config = load_config(root)
+
+        self.assertEqual(config.thresholds.minimum_impressions, 50)
+        self.assertEqual(config.thresholds.minimum_views, 75)
+        self.assertEqual(config.thresholds.weak_cta_rate, 0.03)
+        self.assertEqual(config.thresholds.review_days, 21)
+
+    def test_rejects_invalid_thresholds(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            (root / "open-growth-loop.toml").write_text(
+                "[thresholds]\n"
+                "weak_cta_rate = 2\n",
+                encoding="utf-8",
+            )
+
+            with self.assertRaises(ValueError):
+                load_config(root)
+
 
 if __name__ == "__main__":
     unittest.main()

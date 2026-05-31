@@ -70,6 +70,20 @@ total = "count"
 
 The left side is the source CSV header. The right side is the canonical Open Growth Loop field. Aliases are local-only, and validation reports which aliases were applied.
 
+## Local Thresholds
+
+The planner defaults are conservative, but a workspace can tune them in `open-growth-loop.toml`:
+
+```toml
+[thresholds]
+minimum_impressions = 25
+minimum_views = 25
+weak_cta_rate = 0.05
+review_days = 14
+```
+
+`weak_cta_rate` controls the funnel-dropoff rule. The command-line flags still override config values for one-off runs.
+
 ## Experiments
 
 Default path: `data/experiments.csv`

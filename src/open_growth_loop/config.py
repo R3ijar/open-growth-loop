@@ -15,9 +15,18 @@ SchemaAliases = Mapping[str, Mapping[str, str]]
 
 
 @dataclass(frozen=True)
+class GrowthThresholds:
+    minimum_impressions: int = 25
+    minimum_views: int = 25
+    weak_cta_rate: float = 0.05
+    review_days: int = 14
+
+
+@dataclass(frozen=True)
 class GrowthConfig:
     path: Path | None
     schema_aliases: dict[str, dict[str, str]]
+    thresholds: GrowthThresholds = GrowthThresholds()
 
     def aliases_for(self, schema_name: str) -> dict[str, str]:
         return dict(self.schema_aliases.get(schema_name, {}))
@@ -42,7 +51,8 @@ def load_config(workspace: Path, config_path: Path | None = None) -> GrowthConfi
             raise ValueError(f"schema_aliases.{schema_name} must be a table")
         aliases[schema_name] = _normalize_alias_mapping(raw_mapping, schema_name)
 
-    return GrowthConfig(path=path, schema_aliases=aliases)
+    thresholds = _load_thresholds(payload.get("thresholds", {}))
+    return GrowthConfig(path=path, schema_aliases=aliases, thresholds=thresholds)
 
 
 def apply_column_aliases(row: Mapping[str, str], aliases: Mapping[str, str] | None) -> dict[str, str]:
@@ -83,6 +93,54 @@ def _normalize_alias_mapping(raw_mapping: Mapping[str, object], section: str) ->
             raise ValueError(f"schema_aliases.{section}.{source} must map to a string field name")
         aliases[_normalize_field(source)] = _normalize_field(target)
     return aliases
+
+
+def _load_thresholds(raw_thresholds: object) -> GrowthThresholds:
+    if raw_thresholds in ({}, None):
+        return GrowthThresholds()
+    if not isinstance(raw_thresholds, dict):
+        raise ValueError("thresholds must be a table in open-growth-loop.toml")
+
+    allowed = {"minimum_impressions", "minimum_views", "weak_cta_rate", "review_days"}
+    unknown = sorted(set(raw_thresholds) - allowed)
+    if unknown:
+        raise ValueError(f"unknown threshold setting: {', '.join(unknown)}")
+
+    thresholds = GrowthThresholds()
+    minimum_impressions = _positive_int(raw_thresholds.get("minimum_impressions", thresholds.minimum_impressions), "minimum_impressions")
+    minimum_views = _positive_int(raw_thresholds.get("minimum_views", thresholds.minimum_views), "minimum_views")
+    weak_cta_rate = _rate(raw_thresholds.get("weak_cta_rate", thresholds.weak_cta_rate), "weak_cta_rate")
+    review_days = _positive_int(raw_thresholds.get("review_days", thresholds.review_days), "review_days")
+    return GrowthThresholds(
+        minimum_impressions=minimum_impressions,
+        minimum_views=minimum_views,
+        weak_cta_rate=weak_cta_rate,
+        review_days=review_days,
+    )
+
+
+def _positive_int(value: object, name: str) -> int:
+    if isinstance(value, bool):
+        raise ValueError(f"thresholds.{name} must be a positive integer")
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"thresholds.{name} must be a positive integer") from exc
+    if parsed <= 0:
+        raise ValueError(f"thresholds.{name} must be a positive integer")
+    return parsed
+
+
+def _rate(value: object, name: str) -> float:
+    if isinstance(value, bool):
+        raise ValueError(f"thresholds.{name} must be a number between 0 and 1")
+    try:
+        parsed = float(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"thresholds.{name} must be a number between 0 and 1") from exc
+    if parsed <= 0 or parsed >= 1:
+        raise ValueError(f"thresholds.{name} must be a number between 0 and 1")
+    return parsed
 
 
 def _normalize_field(value: object) -> str:

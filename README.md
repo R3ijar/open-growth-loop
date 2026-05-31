@@ -176,6 +176,18 @@ total = "count"
 
 Aliases only rename local CSV headers into the expected schema. They do not add credentials, call hosted APIs, or relax private-column validation.
 
+You can also tune conservative defaults in the same file:
+
+```toml
+[thresholds]
+minimum_impressions = 25
+minimum_views = 25
+weak_cta_rate = 0.05
+review_days = 14
+```
+
+Command-line flags such as `--minimum-impressions`, `--minimum-views`, and `--weak-cta-rate` override the config for a single run.
+
 ## Daily Loop
 
 Recommended maintainer workflow:

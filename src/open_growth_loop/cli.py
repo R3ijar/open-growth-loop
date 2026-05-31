@@ -35,13 +35,14 @@ def main() -> None:
     plan.add_argument("--inventory", default="", help="Content inventory CSV.")
     plan.add_argument("--search-rows", default="", help="Search Console rows CSV.")
     plan.add_argument("--events", default="", help="Aggregate events CSV.")
-    plan.add_argument("--minimum-impressions", type=int, default=25)
-    plan.add_argument("--minimum-views", type=int, default=25)
+    plan.add_argument("--minimum-impressions", type=int, default=None)
+    plan.add_argument("--minimum-views", type=int, default=None)
+    plan.add_argument("--weak-cta-rate", type=float, default=None)
 
     query_backlog = subparsers.add_parser("query-backlog", help="Write ranked query opportunities.")
     add_workspace_argument(query_backlog)
     query_backlog.add_argument("--search-rows", default="", help="Search Console rows CSV.")
-    query_backlog.add_argument("--minimum-impressions", type=int, default=25)
+    query_backlog.add_argument("--minimum-impressions", type=int, default=None)
 
     import_events = subparsers.add_parser("import-events", help="Import privacy-safe aggregate event rows.")
     add_workspace_argument(import_events)
@@ -54,7 +55,7 @@ def main() -> None:
     track.add_argument("--search-rows", default="", help="Search Console rows CSV.")
     track.add_argument("--events", default="", help="Aggregate events CSV.")
     track.add_argument("--plan-json", default="", help="Plan JSON. Defaults to outbox/plans/latest-plan.json.")
-    track.add_argument("--review-days", type=int, default=14)
+    track.add_argument("--review-days", type=int, default=None)
     track.add_argument("--artifact", default="")
     track.add_argument("--note", default="")
 
@@ -71,8 +72,8 @@ def main() -> None:
     review.add_argument("--ledger", default="", help="Experiment ledger CSV.")
     review.add_argument("--search-rows", default="", help="Search Console rows CSV.")
     review.add_argument("--events", default="", help="Aggregate events CSV.")
-    review.add_argument("--minimum-impressions", type=int, default=25)
-    review.add_argument("--minimum-views", type=int, default=25)
+    review.add_argument("--minimum-impressions", type=int, default=None)
+    review.add_argument("--minimum-views", type=int, default=None)
 
     prompt = subparsers.add_parser("prompt", help="Write a Codex-ready prompt from the latest plan.")
     add_workspace_argument(prompt)
@@ -122,6 +123,7 @@ def run_status(workspace: Path, config: GrowthConfig) -> None:
         "events": str(events),
         "experiments": str(ledger),
         "config": str(config.path) if config.path else "",
+        "thresholds": asdict(config.thresholds),
         "latest_plan": str(workspace / "outbox" / "plans" / "latest-plan.json"),
     }
     print(json.dumps(payload, indent=2))
@@ -144,12 +146,16 @@ def run_plan(args: argparse.Namespace, workspace: Path, config: GrowthConfig) ->
     inventory = Path(args.inventory) if args.inventory else default_inventory
     search_rows = Path(args.search_rows) if args.search_rows else default_search_rows
     events = Path(args.events) if args.events else default_events
+    minimum_impressions = args.minimum_impressions if args.minimum_impressions is not None else config.thresholds.minimum_impressions
+    minimum_views = args.minimum_views if args.minimum_views is not None else config.thresholds.minimum_views
+    weak_cta_rate = args.weak_cta_rate if args.weak_cta_rate is not None else config.thresholds.weak_cta_rate
     plan = build_daily_plan(
         inventory,
         search_rows,
         events,
-        minimum_impressions=args.minimum_impressions,
-        minimum_views=args.minimum_views,
+        minimum_impressions=minimum_impressions,
+        minimum_views=minimum_views,
+        weak_cta_rate=weak_cta_rate,
         aliases=config.schema_aliases,
     )
     md_path, json_path = write_plan_reports(plan, workspace / "outbox" / "plans")
@@ -170,7 +176,8 @@ def run_plan(args: argparse.Namespace, workspace: Path, config: GrowthConfig) ->
 def run_query_backlog(args: argparse.Namespace, workspace: Path, config: GrowthConfig) -> None:
     _, default_search_rows, _ = default_data_paths(workspace)
     search_rows = Path(args.search_rows) if args.search_rows else default_search_rows
-    opportunities = build_query_backlog(search_rows, args.minimum_impressions, config.aliases_for("search_rows"))
+    minimum_impressions = args.minimum_impressions if args.minimum_impressions is not None else config.thresholds.minimum_impressions
+    opportunities = build_query_backlog(search_rows, minimum_impressions, config.aliases_for("search_rows"))
     out_path = workspace / "outbox" / "query-backlog.md"
     latest_path, history_path = write_text_report(out_path, render_query_backlog(opportunities))
     print(json.dumps({"opportunities": len(opportunities), "markdown": str(latest_path), "markdown_history": str(history_path)}, indent=2))
@@ -186,7 +193,8 @@ def run_track_experiment(args: argparse.Namespace, workspace: Path, config: Grow
     from .planner import DailyPlan
 
     plan = DailyPlan(**payload)
-    row = track_plan(plan, ledger, search_rows, events, args.review_days, args.artifact, args.note, config.schema_aliases)
+    review_days = args.review_days if args.review_days is not None else config.thresholds.review_days
+    row = track_plan(plan, ledger, search_rows, events, review_days, args.artifact, args.note, config.schema_aliases)
     print(json.dumps(row, indent=2))
 
 
@@ -211,7 +219,9 @@ def run_review_experiments(args: argparse.Namespace, workspace: Path, config: Gr
     ledger = Path(args.ledger) if args.ledger else first_existing([workspace / "data" / "experiments.csv", workspace / "data" / "experiments.example.csv"])
     search_rows = Path(args.search_rows) if args.search_rows else default_search_rows
     events = Path(args.events) if args.events else default_events
-    reviews = review_experiments(ledger, search_rows, events, args.minimum_impressions, args.minimum_views, config.schema_aliases)
+    minimum_impressions = args.minimum_impressions if args.minimum_impressions is not None else config.thresholds.minimum_impressions
+    minimum_views = args.minimum_views if args.minimum_views is not None else config.thresholds.minimum_views
+    reviews = review_experiments(ledger, search_rows, events, minimum_impressions, minimum_views, config.schema_aliases)
     out_path = workspace / "outbox" / "experiment-review.md"
     latest_path, history_path = write_text_report(out_path, render_reviews_markdown(reviews))
     json_path, json_history_path = write_json_report(workspace / "outbox" / "experiment-review.json", [asdict(review) for review in reviews])
