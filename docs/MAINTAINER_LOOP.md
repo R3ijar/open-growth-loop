@@ -66,7 +66,15 @@ ogl weekly-review --workspace .
 
 Use this to see staged assets, experiments waiting for artifact evidence, shipped experiments ready for review, and shipped experiments still waiting for data.
 
-## 8. Review Later
+## 8. Scan Before Sharing
+
+```bash
+ogl privacy-scan --workspace .
+```
+
+Run this before publishing sample workspaces, docs examples, or issue attachments. It checks CSV headers for private-looking columns and scans text files for email addresses or secret-like assignments.
+
+## 9. Review Later
 
 ```bash
 ogl review-experiments --workspace .

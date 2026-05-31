@@ -10,6 +10,7 @@ from .events import import_aggregate_events
 from .experiments import render_reviews_markdown, review_experiments, ship_experiment, track_plan
 from .io_utils import dated_report_path, first_existing, read_json, write_json_report, write_text_report
 from .planner import build_daily_plan, default_data_paths, write_plan_reports
+from .privacy import render_privacy_scan_markdown, scan_privacy
 from .prompts import render_codex_prompt
 from .query_backlog import build_query_backlog, render_query_backlog
 from .weekly import build_weekly_review, render_weekly_review
@@ -81,6 +82,10 @@ def main() -> None:
     weekly.add_argument("--inventory", default="", help="Content inventory CSV.")
     weekly.add_argument("--ledger", default="", help="Experiment ledger CSV.")
 
+    privacy = subparsers.add_parser("privacy-scan", help="Scan local workspace files for private-data leakage risks.")
+    add_workspace_argument(privacy)
+    privacy.add_argument("--include-tests", action="store_true", help="Include tests/ directories in the scan.")
+
     prompt = subparsers.add_parser("prompt", help="Write a Codex-ready prompt from the latest plan.")
     add_workspace_argument(prompt)
     prompt.add_argument("--plan-json", default="", help="Plan JSON. Defaults to outbox/plans/latest-plan.json.")
@@ -113,6 +118,8 @@ def main() -> None:
         run_review_experiments(args, workspace, config)
     elif args.command == "weekly-review":
         run_weekly_review(args, workspace, config)
+    elif args.command == "privacy-scan":
+        run_privacy_scan(args, workspace)
     elif args.command == "prompt":
         run_prompt(args, workspace)
 
@@ -268,6 +275,29 @@ def run_weekly_review(args: argparse.Namespace, workspace: Path, config: GrowthC
             indent=2,
         )
     )
+
+
+def run_privacy_scan(args: argparse.Namespace, workspace: Path) -> None:
+    result = scan_privacy(workspace, include_tests=args.include_tests)
+    out_path = workspace / "outbox" / "privacy-scan.md"
+    latest_path, history_path = write_text_report(out_path, render_privacy_scan_markdown(result))
+    json_path, json_history_path = write_json_report(workspace / "outbox" / "privacy-scan.json", asdict(result))
+    print(
+        json.dumps(
+            {
+                "ok": result.ok,
+                "checked_files": result.checked_files,
+                "findings": len(result.findings),
+                "markdown": str(latest_path),
+                "markdown_history": str(history_path),
+                "json": str(json_path),
+                "json_history": str(json_history_path),
+            },
+            indent=2,
+        )
+    )
+    if not result.ok:
+        raise SystemExit(1)
 
 
 def run_prompt(args: argparse.Namespace, workspace: Path) -> None:

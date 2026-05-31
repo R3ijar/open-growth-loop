@@ -21,6 +21,7 @@ The tool is intentionally generic. It does not know about any one product, priva
 - `ogl ship` records the public artifact once the change is live.
 - `ogl review-experiments` avoids premature winner/loser claims from tiny samples.
 - `ogl weekly-review` summarizes operating state across inventory and experiments.
+- `ogl privacy-scan` checks local files for private-data leakage risks.
 - `ogl prompt` writes a Codex-ready prompt for the next focused change.
 
 In practice, the tool reads local CSVs and writes reviewable Markdown/JSON files under `outbox/`:
@@ -133,6 +134,12 @@ Summarize the current operating state:
 
 ```bash
 ogl weekly-review --workspace .
+```
+
+Scan before sharing a workspace or example:
+
+```bash
+ogl privacy-scan --workspace .
 ```
 
 Generate a Codex-ready maintenance prompt from the latest plan:
