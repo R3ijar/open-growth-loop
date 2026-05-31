@@ -80,6 +80,8 @@ minimum_impressions = 25
 minimum_views = 25
 weak_cta_rate = 0.05
 review_days = 14
+stale_planned_days = 14
+stale_shipped_days = 21
 ```
 
 `weak_cta_rate` controls the funnel-dropoff rule. The command-line flags still override config values for one-off runs.

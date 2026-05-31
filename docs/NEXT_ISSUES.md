@@ -45,3 +45,7 @@ Implemented `ogl weekly-review` for inventory and experiment state.
 ### Add Local Privacy Scan
 
 Implemented `ogl privacy-scan` for private-looking CSV headers and secret-like text.
+
+### Add Stale Work Detection
+
+Implemented stale planned/shipped work detection in `ogl weekly-review` with configurable stale windows.

@@ -258,7 +258,13 @@ def run_weekly_review(args: argparse.Namespace, workspace: Path, config: GrowthC
     default_inventory, _, _ = default_data_paths(workspace)
     inventory = Path(args.inventory) if args.inventory else default_inventory
     ledger = Path(args.ledger) if args.ledger else first_existing([workspace / "data" / "experiments.csv", workspace / "data" / "experiments.example.csv"])
-    review = build_weekly_review(inventory, ledger, config.schema_aliases)
+    review = build_weekly_review(
+        inventory,
+        ledger,
+        config.schema_aliases,
+        stale_planned_days=config.thresholds.stale_planned_days,
+        stale_shipped_days=config.thresholds.stale_shipped_days,
+    )
     out_path = workspace / "outbox" / "weekly-review.md"
     latest_path, history_path = write_text_report(out_path, render_weekly_review(review))
     json_path, json_history_path = write_json_report(workspace / "outbox" / "weekly-review.json", asdict(review))
@@ -271,6 +277,7 @@ def run_weekly_review(args: argparse.Namespace, workspace: Path, config: GrowthC
                 "json_history": str(json_history_path),
                 "ready_for_review": len(review.ready_for_review),
                 "waiting_for_artifact": len(review.waiting_for_artifact),
+                "stale_work": len(review.stale_work),
             },
             indent=2,
         )

@@ -198,9 +198,13 @@ minimum_impressions = 25
 minimum_views = 25
 weak_cta_rate = 0.05
 review_days = 14
+stale_planned_days = 14
+stale_shipped_days = 21
 ```
 
 Command-line flags such as `--minimum-impressions`, `--minimum-views`, and `--weak-cta-rate` override the config for a single run.
+
+`weekly-review` uses `stale_planned_days` and `stale_shipped_days` to flag work that has waited too long without artifact evidence or review readiness.
 
 ## Daily Loop
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections import Counter
 from dataclasses import dataclass
+from datetime import date
 from pathlib import Path
 from typing import Mapping
 
@@ -18,6 +19,7 @@ class WeeklyReview:
     waiting_for_artifact: list[dict[str, str]]
     ready_for_review: list[dict[str, str]]
     waiting_for_data: list[dict[str, str]]
+    stale_work: list[dict[str, str]]
     next_attention: list[str]
 
 
@@ -26,6 +28,8 @@ def build_weekly_review(
     ledger_path: Path,
     aliases: Mapping[str, Mapping[str, str]] | None = None,
     today: str | None = None,
+    stale_planned_days: int = 14,
+    stale_shipped_days: int = 21,
 ) -> WeeklyReview:
     aliases = aliases or {}
     today = today or today_iso()
@@ -39,18 +43,26 @@ def build_weekly_review(
     waiting_for_artifact: list[dict[str, str]] = []
     ready_for_review: list[dict[str, str]] = []
     waiting_for_data: list[dict[str, str]] = []
+    stale_work: list[dict[str, str]] = []
     for row in experiments:
         status = (row.get("status") or "planned").strip()
         artifact = (row.get("artifact") or "").strip()
         summary = _experiment_summary(row)
         if status in {"planned", "staged"} or not artifact:
             waiting_for_artifact.append(summary)
+            stale = _stale_artifact_issue(row, today, stale_planned_days)
+            if stale:
+                stale_work.append(stale)
             continue
         if status == "shipped" and (row.get("review_after") or "") <= today:
             ready_for_review.append(summary)
+            stale_work.append(_stale_review_issue(row, today))
             continue
         if status == "shipped":
             waiting_for_data.append(summary)
+            stale = _stale_shipped_wait_issue(row, today, stale_shipped_days)
+            if stale:
+                stale_work.append(stale)
 
     return WeeklyReview(
         generated_on=today,
@@ -60,7 +72,8 @@ def build_weekly_review(
         waiting_for_artifact=waiting_for_artifact,
         ready_for_review=ready_for_review,
         waiting_for_data=waiting_for_data,
-        next_attention=_next_attention(staged_assets, waiting_for_artifact, ready_for_review),
+        stale_work=stale_work,
+        next_attention=_next_attention(staged_assets, stale_work, waiting_for_artifact, ready_for_review),
     )
 
 
@@ -84,6 +97,8 @@ def render_weekly_review(review: WeeklyReview) -> str:
     lines.extend(_experiment_lines(review.ready_for_review, "No shipped experiments are ready for review."))
     lines.extend(["", "## Waiting For More Data", ""])
     lines.extend(_experiment_lines(review.waiting_for_data, "No shipped experiments are waiting for more data."))
+    lines.extend(["", "## Stale Work", ""])
+    lines.extend(_stale_lines(review.stale_work, "No stale work detected."))
     lines.extend(["", "## Next Attention", ""])
     lines.extend(_list_lines(review.next_attention, "Generate the next plan."))
     return "\n".join(lines) + "\n"
@@ -99,7 +114,16 @@ def _experiment_summary(row: Mapping[str, str]) -> dict[str, str]:
     }
 
 
-def _next_attention(staged_assets: list[str], waiting_for_artifact: list[dict[str, str]], ready_for_review: list[dict[str, str]]) -> list[str]:
+def _next_attention(
+    staged_assets: list[str],
+    stale_work: list[dict[str, str]],
+    waiting_for_artifact: list[dict[str, str]],
+    ready_for_review: list[dict[str, str]],
+) -> list[str]:
+    if stale_work:
+        first = stale_work[0]
+        target = first.get("asset") or first.get("id") or "stale work"
+        return [f"Resolve stale work for {target}: {first.get('reason', 'needs attention')}."]
     if staged_assets:
         return [f"Verify release evidence for {staged_assets[0]}."]
     if waiting_for_artifact:
@@ -134,3 +158,79 @@ def _experiment_lines(items: list[dict[str, str]], empty: str) -> list[str]:
         artifact = item.get("artifact") or "none"
         lines.append(f"- {label}: {asset} ({status}, review_after={review_after}, artifact={artifact})")
     return lines
+
+
+def _stale_lines(items: list[dict[str, str]], empty: str) -> list[str]:
+    if not items:
+        return [empty]
+    lines: list[str] = []
+    for item in items:
+        label = item.get("id") or "unknown"
+        asset = item.get("asset") or "none"
+        reason = item.get("reason") or "needs attention"
+        age = item.get("age_days")
+        suffix = f", age_days={age}" if age else ""
+        lines.append(f"- {label}: {asset} [{item.get('kind', 'stale')}] {reason}{suffix}")
+    return lines
+
+
+def _stale_artifact_issue(row: Mapping[str, str], today: str, stale_planned_days: int) -> dict[str, str] | None:
+    summary = _experiment_summary(row)
+    status = (row.get("status") or "planned").strip()
+    if status == "shipped" and not (row.get("artifact") or "").strip():
+        return _stale_summary(summary, "missing_artifact", "Shipped experiment has no artifact evidence.", row.get("shipped_on", ""), today)
+
+    review_after = row.get("review_after") or ""
+    if review_after and review_after <= today:
+        return _stale_summary(summary, "artifact_overdue", "Experiment reached review_after before artifact evidence was recorded.", review_after, today)
+
+    planned_on = row.get("planned_on") or ""
+    age = _age_days(planned_on, today)
+    if age is not None and age >= stale_planned_days:
+        stale = _stale_summary(summary, "planned_stale", f"Experiment has waited at least {stale_planned_days} days without artifact evidence.", planned_on, today)
+        return stale
+    return None
+
+
+def _stale_review_issue(row: Mapping[str, str], today: str) -> dict[str, str]:
+    summary = _experiment_summary(row)
+    review_after = row.get("review_after") or ""
+    return _stale_summary(summary, "review_ready", "Shipped experiment is ready for review.", review_after, today)
+
+
+def _stale_shipped_wait_issue(row: Mapping[str, str], today: str, stale_shipped_days: int) -> dict[str, str] | None:
+    shipped_on = row.get("shipped_on") or ""
+    age = _age_days(shipped_on, today)
+    if age is not None and age >= stale_shipped_days:
+        return _stale_summary(
+            _experiment_summary(row),
+            "shipped_stale",
+            f"Shipped experiment has waited at least {stale_shipped_days} days without becoming review-ready.",
+            shipped_on,
+            today,
+        )
+    return None
+
+
+def _stale_summary(summary: dict[str, str], kind: str, reason: str, start_date: str, today: str) -> dict[str, str]:
+    stale = dict(summary)
+    stale["kind"] = kind
+    stale["reason"] = reason
+    age = _age_days(start_date, today)
+    stale["age_days"] = str(age) if age is not None else ""
+    return stale
+
+
+def _age_days(start_date: str, today: str) -> int | None:
+    start = _parse_iso_date(start_date)
+    end = _parse_iso_date(today)
+    if not start or not end:
+        return None
+    return (end - start).days
+
+
+def _parse_iso_date(value: str) -> date | None:
+    try:
+        return date.fromisoformat(value)
+    except ValueError:
+        return None

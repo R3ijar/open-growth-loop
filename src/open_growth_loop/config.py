@@ -20,6 +20,8 @@ class GrowthThresholds:
     minimum_views: int = 25
     weak_cta_rate: float = 0.05
     review_days: int = 14
+    stale_planned_days: int = 14
+    stale_shipped_days: int = 21
 
 
 @dataclass(frozen=True)
@@ -101,7 +103,7 @@ def _load_thresholds(raw_thresholds: object) -> GrowthThresholds:
     if not isinstance(raw_thresholds, dict):
         raise ValueError("thresholds must be a table in open-growth-loop.toml")
 
-    allowed = {"minimum_impressions", "minimum_views", "weak_cta_rate", "review_days"}
+    allowed = {"minimum_impressions", "minimum_views", "weak_cta_rate", "review_days", "stale_planned_days", "stale_shipped_days"}
     unknown = sorted(set(raw_thresholds) - allowed)
     if unknown:
         raise ValueError(f"unknown threshold setting: {', '.join(unknown)}")
@@ -111,11 +113,15 @@ def _load_thresholds(raw_thresholds: object) -> GrowthThresholds:
     minimum_views = _positive_int(raw_thresholds.get("minimum_views", thresholds.minimum_views), "minimum_views")
     weak_cta_rate = _rate(raw_thresholds.get("weak_cta_rate", thresholds.weak_cta_rate), "weak_cta_rate")
     review_days = _positive_int(raw_thresholds.get("review_days", thresholds.review_days), "review_days")
+    stale_planned_days = _positive_int(raw_thresholds.get("stale_planned_days", thresholds.stale_planned_days), "stale_planned_days")
+    stale_shipped_days = _positive_int(raw_thresholds.get("stale_shipped_days", thresholds.stale_shipped_days), "stale_shipped_days")
     return GrowthThresholds(
         minimum_impressions=minimum_impressions,
         minimum_views=minimum_views,
         weak_cta_rate=weak_cta_rate,
         review_days=review_days,
+        stale_planned_days=stale_planned_days,
+        stale_shipped_days=stale_shipped_days,
     )
 
 

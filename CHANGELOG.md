@@ -2,6 +2,13 @@
 
 All notable changes to Open Growth Loop are documented here.
 
+## Unreleased
+
+### Added
+
+- Stale work detection in weekly reviews for planned work waiting too long, shipped work missing artifacts, shipped work ready for review, and shipped work waiting too long for review readiness.
+- Configurable stale-work windows through `stale_planned_days` and `stale_shipped_days`.
+
 ## 0.1.0 - 2026-05-30
 
 Initial public Apache-2.0 release.

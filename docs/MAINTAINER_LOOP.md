@@ -64,7 +64,7 @@ This marks the experiment as `shipped`, records `shipped_on`, and stores the pub
 ogl weekly-review --workspace .
 ```
 
-Use this to see staged assets, experiments waiting for artifact evidence, shipped experiments ready for review, and shipped experiments still waiting for data.
+Use this to see staged assets, stale planned work, experiments waiting for artifact evidence, shipped experiments ready for review, and shipped experiments still waiting for data.
 
 ## 8. Scan Before Sharing
 
