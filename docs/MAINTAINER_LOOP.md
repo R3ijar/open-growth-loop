@@ -58,7 +58,15 @@ ogl ship --workspace . --asset /docs/setup --artifact https://example.org/docs/s
 
 This marks the experiment as `shipped`, records `shipped_on`, and stores the public artifact URL or path. Work without a shipped artifact is not treated as outcome evidence.
 
-## 7. Review Later
+## 7. Weekly Operating Review
+
+```bash
+ogl weekly-review --workspace .
+```
+
+Use this to see staged assets, experiments waiting for artifact evidence, shipped experiments ready for review, and shipped experiments still waiting for data.
+
+## 8. Review Later
 
 ```bash
 ogl review-experiments --workspace .

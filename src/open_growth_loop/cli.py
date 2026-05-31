@@ -12,6 +12,7 @@ from .io_utils import dated_report_path, first_existing, read_json, write_json_r
 from .planner import build_daily_plan, default_data_paths, write_plan_reports
 from .prompts import render_codex_prompt
 from .query_backlog import build_query_backlog, render_query_backlog
+from .weekly import build_weekly_review, render_weekly_review
 from .workspace import init_workspace, validate_workspace
 
 
@@ -75,6 +76,11 @@ def main() -> None:
     review.add_argument("--minimum-impressions", type=int, default=None)
     review.add_argument("--minimum-views", type=int, default=None)
 
+    weekly = subparsers.add_parser("weekly-review", help="Summarize current operating state across inventory and experiments.")
+    add_workspace_argument(weekly)
+    weekly.add_argument("--inventory", default="", help="Content inventory CSV.")
+    weekly.add_argument("--ledger", default="", help="Experiment ledger CSV.")
+
     prompt = subparsers.add_parser("prompt", help="Write a Codex-ready prompt from the latest plan.")
     add_workspace_argument(prompt)
     prompt.add_argument("--plan-json", default="", help="Plan JSON. Defaults to outbox/plans/latest-plan.json.")
@@ -105,6 +111,8 @@ def main() -> None:
         run_ship(args, workspace, config)
     elif args.command == "review-experiments":
         run_review_experiments(args, workspace, config)
+    elif args.command == "weekly-review":
+        run_weekly_review(args, workspace, config)
     elif args.command == "prompt":
         run_prompt(args, workspace)
 
@@ -233,6 +241,29 @@ def run_review_experiments(args: argparse.Namespace, workspace: Path, config: Gr
                 "markdown_history": str(history_path),
                 "json": str(json_path),
                 "json_history": str(json_history_path),
+            },
+            indent=2,
+        )
+    )
+
+
+def run_weekly_review(args: argparse.Namespace, workspace: Path, config: GrowthConfig) -> None:
+    default_inventory, _, _ = default_data_paths(workspace)
+    inventory = Path(args.inventory) if args.inventory else default_inventory
+    ledger = Path(args.ledger) if args.ledger else first_existing([workspace / "data" / "experiments.csv", workspace / "data" / "experiments.example.csv"])
+    review = build_weekly_review(inventory, ledger, config.schema_aliases)
+    out_path = workspace / "outbox" / "weekly-review.md"
+    latest_path, history_path = write_text_report(out_path, render_weekly_review(review))
+    json_path, json_history_path = write_json_report(workspace / "outbox" / "weekly-review.json", asdict(review))
+    print(
+        json.dumps(
+            {
+                "markdown": str(latest_path),
+                "markdown_history": str(history_path),
+                "json": str(json_path),
+                "json_history": str(json_history_path),
+                "ready_for_review": len(review.ready_for_review),
+                "waiting_for_artifact": len(review.waiting_for_artifact),
             },
             indent=2,
         )

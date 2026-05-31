@@ -20,6 +20,7 @@ The tool is intentionally generic. It does not know about any one product, priva
 - `ogl track-experiment` records the action baseline.
 - `ogl ship` records the public artifact once the change is live.
 - `ogl review-experiments` avoids premature winner/loser claims from tiny samples.
+- `ogl weekly-review` summarizes operating state across inventory and experiments.
 - `ogl prompt` writes a Codex-ready prompt for the next focused change.
 
 In practice, the tool reads local CSVs and writes reviewable Markdown/JSON files under `outbox/`:
@@ -126,6 +127,12 @@ Review experiments after enough data has accumulated:
 
 ```bash
 ogl review-experiments --workspace .
+```
+
+Summarize the current operating state:
+
+```bash
+ogl weekly-review --workspace .
 ```
 
 Generate a Codex-ready maintenance prompt from the latest plan:
