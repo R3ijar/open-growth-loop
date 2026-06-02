@@ -9,6 +9,7 @@ All notable changes to Open Growth Loop are documented here.
 - Stale work detection in weekly reviews for planned work waiting too long, shipped work missing artifacts, shipped work ready for review, and shipped work waiting too long for review readiness.
 - Configurable stale-work windows through `stale_planned_days` and `stale_shipped_days`.
 - Unified action candidate engine with `ogl candidates` for ranked planner alternatives.
+- Local action memory with `ogl complete`, `ogl outcome`, pending-outcome candidates, and conservative score adjustments from recorded outcomes.
 
 ## 0.1.0 - 2026-05-30
 

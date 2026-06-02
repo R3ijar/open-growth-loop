@@ -9,6 +9,7 @@ from .events import PRIVATE_COLUMN_HINTS, validate_event_columns
 from .experiments import FIELDS as EXPERIMENT_FIELDS
 from .experiments import REQUIRED_FIELDS as EXPERIMENT_REQUIRED_FIELDS
 from .io_utils import ensure_parent, first_existing, write_csv_rows
+from .memory import FIELDS as ACTION_MEMORY_FIELDS
 
 CONTENT_INVENTORY_FIELDS = ["status", "type", "asset", "primary_query", "cta", "owner_note"]
 SEARCH_ROW_FIELDS = ["query", "page", "clicks", "impressions", "ctr", "position"]
@@ -34,6 +35,7 @@ DATA_FILES = {
     "search_console_rows.csv": SEARCH_ROW_FIELDS,
     "events.csv": EVENT_FIELDS,
     "experiments.csv": EXPERIMENT_FIELDS,
+    "action_memory.csv": ACTION_MEMORY_FIELDS,
 }
 
 
@@ -68,6 +70,10 @@ def validate_workspace(workspace: Path, config: GrowthConfig | None = None) -> W
         "events": EVENT_FIELDS,
         "experiments": EXPERIMENT_REQUIRED_FIELDS,
     }
+    optional_paths = {
+        "action_memory": first_existing([data_dir / "action_memory.csv", data_dir / "action_memory.example.csv"]),
+    }
+    optional_required = {"action_memory": ACTION_MEMORY_FIELDS}
 
     checked: list[str] = []
     errors: list[str] = []
@@ -99,6 +105,20 @@ def validate_workspace(workspace: Path, config: GrowthConfig | None = None) -> W
                 validate_event_columns(effective_header)
             except ValueError as exc:
                 errors.append(f"{name}: {exc}")
+
+    for name, path in optional_paths.items():
+        if not path.exists():
+            continue
+        checked.append(str(path))
+        header = _read_header(path)
+        if not header:
+            errors.append(f"{name}: empty CSV or missing header at {path}")
+            continue
+        effective_header, applied = apply_header_aliases(header, config.aliases_for(name) if config else None)
+        aliases_applied.extend(f"{name}.{entry}" for entry in applied)
+        missing = sorted(set(optional_required[name]) - set(effective_header))
+        if missing:
+            errors.append(f"{name}: missing required columns: {', '.join(missing)}")
 
     return WorkspaceValidation(ok=not errors, checked=checked, errors=errors, aliases_applied=aliases_applied)
 

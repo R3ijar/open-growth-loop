@@ -35,13 +35,14 @@ If the plan is `release_evidence`, verify the staged asset before creating anoth
 - confirm it avoids unverified adoption or impact claims
 - record the artifact URL before reviewing outcomes
 
-## 4. Track The Baseline
+## 4. Track The Baseline And Completion
 
 ```bash
 ogl track-experiment --workspace .
+ogl complete --workspace .
 ```
 
-The ledger records impressions, clicks, views, and conversions before the change.
+The experiment ledger records impressions, clicks, views, and conversions before the change. Action memory records that the recommendation was actually completed, so future candidate ranking can avoid repeating finished work without an outcome.
 
 ## 5. Let Codex Help With The Change
 
@@ -59,7 +60,15 @@ ogl ship --workspace . --asset /docs/setup --artifact https://example.org/docs/s
 
 This marks the experiment as `shipped`, records `shipped_on`, and stores the public artifact URL or path. Work without a shipped artifact is not treated as outcome evidence.
 
-## 7. Weekly Operating Review
+## 7. Record The Outcome
+
+```bash
+ogl outcome --workspace . --asset /docs/setup --outcome directionally_positive --confidence medium
+```
+
+Outcomes are local ranking context. They should be conservative labels from aggregate signals, maintainer review, or issue evidence. Use `insufficient_sample` when there is not enough evidence yet.
+
+## 8. Weekly Operating Review
 
 ```bash
 ogl weekly-review --workspace .
@@ -67,7 +76,7 @@ ogl weekly-review --workspace .
 
 Use this to see staged assets, stale planned work, experiments waiting for artifact evidence, shipped experiments ready for review, and shipped experiments still waiting for data.
 
-## 8. Scan Before Sharing
+## 9. Scan Before Sharing
 
 ```bash
 ogl privacy-scan --workspace .
@@ -75,7 +84,7 @@ ogl privacy-scan --workspace .
 
 Run this before publishing sample workspaces, docs examples, or issue attachments. It checks CSV headers for private-looking columns and scans text files for email addresses or secret-like assignments.
 
-## 9. Review Later
+## 10. Review Later
 
 ```bash
 ogl review-experiments --workspace .

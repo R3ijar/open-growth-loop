@@ -10,7 +10,8 @@ from .config import GrowthConfig, load_config
 from .events import import_aggregate_events
 from .experiments import render_reviews_markdown, review_experiments, ship_experiment, track_plan
 from .io_utils import dated_report_path, first_existing, read_json, write_json_report, write_text_report
-from .planner import build_daily_plan, default_data_paths, write_plan_reports
+from .memory import record_completion, record_outcome
+from .planner import DailyPlan, build_daily_plan, default_data_paths, default_memory_path, write_plan_reports
 from .privacy import render_privacy_scan_markdown, scan_privacy
 from .prompts import render_codex_prompt
 from .query_backlog import build_query_backlog, render_query_backlog
@@ -50,6 +51,27 @@ def main() -> None:
     candidates.add_argument("--minimum-impressions", type=int, default=None)
     candidates.add_argument("--minimum-views", type=int, default=None)
     candidates.add_argument("--weak-cta-rate", type=float, default=None)
+    candidates.add_argument("--memory", default="", help="Action memory CSV.")
+
+    complete = subparsers.add_parser("complete", help="Record that the latest plan or a manual action was completed.")
+    add_workspace_argument(complete)
+    complete.add_argument("--memory", default="", help="Action memory CSV.")
+    complete.add_argument("--plan-json", default="", help="Plan JSON. Defaults to outbox/plans/latest-plan.json.")
+    complete.add_argument("--asset", default="", help="Manual asset if not reading a plan.")
+    complete.add_argument("--action-type", default="", help="Manual action type if not reading a plan.")
+    complete.add_argument("--source", default="", help="Manual source if not reading a plan.")
+    complete.add_argument("--artifact", default="", help="Optional public URL, release, path, or evidence.")
+    complete.add_argument("--note", default="", help="Optional completion note.")
+
+    outcome = subparsers.add_parser("outcome", help="Record the observed outcome for a completed action.")
+    add_workspace_argument(outcome)
+    outcome.add_argument("--memory", default="", help="Action memory CSV.")
+    outcome.add_argument("--id", default="", help="Action memory record id.")
+    outcome.add_argument("--asset", default="", help="Use the latest matching action for this asset.")
+    outcome.add_argument("--outcome", required=True, help="Outcome such as directionally_positive, needs_iteration, or insufficient_sample.")
+    outcome.add_argument("--impact", type=float, default=None, help="Optional numeric local impact score.")
+    outcome.add_argument("--confidence", default="", help="Optional confidence label.")
+    outcome.add_argument("--note", default="", help="Optional outcome note.")
 
     query_backlog = subparsers.add_parser("query-backlog", help="Write ranked query opportunities.")
     add_workspace_argument(query_backlog)
@@ -117,6 +139,10 @@ def main() -> None:
         run_plan(args, workspace, config)
     elif args.command == "candidates":
         run_candidates(args, workspace, config)
+    elif args.command == "complete":
+        run_complete(args, workspace, config)
+    elif args.command == "outcome":
+        run_outcome(args, workspace, config)
     elif args.command == "query-backlog":
         run_query_backlog(args, workspace, config)
     elif args.command == "import-events":
@@ -149,6 +175,7 @@ def run_status(workspace: Path, config: GrowthConfig) -> None:
         "search_rows": str(search_rows),
         "events": str(events),
         "experiments": str(ledger),
+        "action_memory": str(default_memory_path(workspace)),
         "config": str(config.path) if config.path else "",
         "thresholds": asdict(config.thresholds),
         "latest_plan": str(workspace / "outbox" / "plans" / "latest-plan.json"),
@@ -183,6 +210,7 @@ def run_plan(args: argparse.Namespace, workspace: Path, config: GrowthConfig) ->
         minimum_impressions=minimum_impressions,
         minimum_views=minimum_views,
         weak_cta_rate=weak_cta_rate,
+        memory_path=default_memory_path(workspace),
         aliases=config.schema_aliases,
     )
     md_path, json_path = write_plan_reports(plan, workspace / "outbox" / "plans")
@@ -215,6 +243,7 @@ def run_candidates(args: argparse.Namespace, workspace: Path, config: GrowthConf
         minimum_impressions=minimum_impressions,
         minimum_views=minimum_views,
         weak_cta_rate=weak_cta_rate,
+        memory_path=Path(args.memory) if args.memory else default_memory_path(workspace),
         aliases=config.schema_aliases,
     )
     md_path = workspace / "outbox" / "candidates" / "latest-candidates.md"
@@ -233,6 +262,51 @@ def run_candidates(args: argparse.Namespace, workspace: Path, config: GrowthConf
             indent=2,
         )
     )
+
+
+def run_complete(args: argparse.Namespace, workspace: Path, config: GrowthConfig) -> None:
+    memory = Path(args.memory) if args.memory else default_memory_path(workspace)
+    asset = args.asset.strip()
+    action_type = args.action_type.strip()
+    source = args.source.strip()
+    note = args.note.strip()
+    if not asset and not action_type:
+        plan_json = Path(args.plan_json) if args.plan_json else workspace / "outbox" / "plans" / "latest-plan.json"
+        payload = read_json(plan_json)
+        plan = DailyPlan(**payload)
+        asset = plan.asset
+        action_type = plan.action_type
+        decision = plan.evidence.get("decision") if isinstance(plan.evidence, dict) else None
+        source = source or (str(decision.get("selected_rule", "")) if isinstance(decision, dict) else "")
+        note = note or plan.title
+    row = record_completion(
+        memory,
+        asset=asset,
+        action_type=action_type,
+        source=source,
+        artifact=args.artifact,
+        note=note,
+        aliases=config.aliases_for("action_memory"),
+    )
+    print(json.dumps(row, indent=2))
+
+
+def run_outcome(args: argparse.Namespace, workspace: Path, config: GrowthConfig) -> None:
+    memory = Path(args.memory) if args.memory else default_memory_path(workspace)
+    try:
+        row = record_outcome(
+            memory,
+            outcome=args.outcome,
+            record_id=args.id,
+            asset=args.asset,
+            impact=args.impact,
+            confidence=args.confidence,
+            note=args.note,
+            aliases=config.aliases_for("action_memory"),
+        )
+    except ValueError as exc:
+        raise SystemExit(str(exc)) from exc
+    print(json.dumps(row, indent=2))
 
 
 def run_query_backlog(args: argparse.Namespace, workspace: Path, config: GrowthConfig) -> None:

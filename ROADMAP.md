@@ -14,6 +14,7 @@
 - Weekly operating review.
 - Local privacy scan.
 - Runnable sample workspaces.
+- Local action memory with completed-action outcomes.
 
 ## 0.2
 

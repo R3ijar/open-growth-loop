@@ -19,9 +19,9 @@ class WorkspaceTests(unittest.TestCase):
             second_result = init_workspace(root)
             inventory_text = inventory.read_text(encoding="utf-8")
 
-        self.assertEqual(len(result.created), 4)
+        self.assertEqual(len(result.created), 5)
         self.assertEqual(len(second_result.created), 0)
-        self.assertEqual(len(second_result.skipped), 4)
+        self.assertEqual(len(second_result.skipped), 5)
         self.assertEqual(inventory_text, "custom\n")
 
     def test_validate_accepts_initialized_workspace(self) -> None:
@@ -32,7 +32,7 @@ class WorkspaceTests(unittest.TestCase):
             result = validate_workspace(root)
 
         self.assertTrue(result.ok, result.errors)
-        self.assertEqual(len(result.checked), 4)
+        self.assertEqual(len(result.checked), 5)
 
     def test_validate_reports_private_event_columns(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

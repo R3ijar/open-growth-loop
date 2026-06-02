@@ -86,6 +86,30 @@ stale_shipped_days = 21
 
 `weak_cta_rate` controls the funnel-dropoff rule. The command-line flags still override config values for one-off runs.
 
+## Action Memory
+
+Default path: `data/action_memory.csv`
+
+Current columns:
+
+```text
+id,status,asset,action_type,source,completed_on,outcome_on,outcome,impact,confidence,artifact,note
+```
+
+Useful `status` values:
+
+- `completed`
+- `measured`
+
+Use `ogl complete` to record that a daily plan or manual action was actually done. Use `ogl outcome` later to record the observed result, such as:
+
+- `directionally_positive`
+- `needs_iteration`
+- `insufficient_sample`
+- `no_visible_change`
+
+The candidate engine uses this memory conservatively. Pending completed actions produce a `record_outcome` candidate. Exact asset/action repeats are cooled after measurement. Positive outcomes apply a small action-type boost for similar future work, and weak outcomes apply a small action-type cooldown. Missing or weak outcomes are not treated as failure unless the maintainer records them that way.
+
 ## Experiments
 
 Default path: `data/experiments.csv`

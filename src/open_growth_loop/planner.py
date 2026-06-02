@@ -27,6 +27,7 @@ def build_daily_plan(
     minimum_impressions: int = 25,
     minimum_views: int = 25,
     weak_cta_rate: float = 0.05,
+    memory_path: Path | None = None,
     aliases: Mapping[str, Mapping[str, str]] | None = None,
 ) -> DailyPlan:
     thresholds = {
@@ -41,6 +42,7 @@ def build_daily_plan(
         minimum_impressions=minimum_impressions,
         minimum_views=minimum_views,
         weak_cta_rate=weak_cta_rate,
+        memory_path=memory_path,
         aliases=aliases,
     )
     if candidates:
@@ -83,6 +85,10 @@ def default_data_paths(workspace: Path) -> tuple[Path, Path, Path]:
     search_rows = first_existing([data_dir / "search_console_rows.csv", data_dir / "search_console_rows.example.csv"])
     events = first_existing([data_dir / "events.csv", data_dir / "events.example.csv"])
     return inventory, search_rows, events
+
+
+def default_memory_path(workspace: Path) -> Path:
+    return workspace / "data" / "action_memory.csv"
 
 
 def best_funnel_dropoff(rollups: list[EventRollup], minimum_views: int, weak_cta_rate: float = 0.05) -> EventRollup | None:

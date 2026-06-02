@@ -35,7 +35,8 @@ Expected shape:
     ".../data/content_inventory.example.csv",
     ".../data/search_console_rows.example.csv",
     ".../data/events.example.csv",
-    ".../data/experiments.example.csv"
+    ".../data/experiments.example.csv",
+    ".../data/action_memory.example.csv"
   ],
   "errors": []
 }
@@ -130,10 +131,22 @@ After making the public change, record the baseline:
 python -m open_growth_loop --workspace . track-experiment
 ```
 
+Record that the recommended action was actually completed:
+
+```bash
+python -m open_growth_loop --workspace . complete
+```
+
 After the change is public, record the artifact:
 
 ```bash
 python -m open_growth_loop --workspace . ship --asset /guides/configuration-checklist --artifact https://example.org/guides/configuration-checklist
+```
+
+After enough time and aggregate signal, record the outcome in local action memory:
+
+```bash
+python -m open_growth_loop --workspace . outcome --asset /guides/configuration-checklist --outcome insufficient_sample
 ```
 
 After enough time and aggregate data:
@@ -148,6 +161,8 @@ The review separates operational state from evidence:
 - shipped work without an artifact is not treated as a win
 - small samples are marked insufficient
 - only observed click or conversion movement becomes directionally positive
+
+Action memory then feeds future candidate ranking. Completed actions without outcomes produce a `record_outcome` candidate, exact measured repeats are cooled down, and action types with positive outcomes receive a small local boost for similar future work.
 
 ## What This Avoids
 

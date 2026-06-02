@@ -18,6 +18,8 @@ The tool is intentionally generic. It does not know about any one product, priva
 - `ogl candidates` writes all ranked action candidates considered by the planner.
 - `ogl query-backlog` ranks Search Console rows into maintenance opportunities.
 - `ogl plan` chooses one daily action using conservative rules.
+- `ogl complete` records that a recommended action was actually done.
+- `ogl outcome` records what happened later so future ranking can learn locally.
 - `ogl track-experiment` records the action baseline.
 - `ogl ship` records the public artifact once the change is live.
 - `ogl review-experiments` avoids premature winner/loser claims from tiny samples.
@@ -30,6 +32,7 @@ In practice, the tool reads local CSVs and writes reviewable Markdown/JSON files
 - a ranked query backlog
 - one daily action plan
 - an experiment review
+- local action memory for completed work and outcomes
 - a focused prompt for Codex or another coding assistant
 
 Each report keeps the familiar `latest-*` path for daily use and also writes a dated copy under `history/` so maintainers can compare decisions over time.
@@ -125,10 +128,22 @@ Track the latest daily plan as an experiment:
 ogl track-experiment --workspace .
 ```
 
+Record that the action was completed:
+
+```bash
+ogl complete --workspace .
+```
+
 Record the public artifact after the change ships:
 
 ```bash
 ogl ship --workspace . --asset /docs/setup --artifact https://example.org/docs/setup
+```
+
+Record the observed outcome later:
+
+```bash
+ogl outcome --workspace . --asset /docs/setup --outcome directionally_positive --confidence medium
 ```
 
 Review experiments after enough data has accumulated:
@@ -169,6 +184,7 @@ The default files live under `data/`:
 - `search_console_rows.example.csv`
 - `events.example.csv`
 - `experiments.example.csv`
+- `action_memory.example.csv`
 
 For real use, copy them without `.example`:
 
@@ -177,6 +193,7 @@ copy data\content_inventory.example.csv data\content_inventory.csv
 copy data\search_console_rows.example.csv data\search_console_rows.csv
 copy data\events.example.csv data\events.csv
 copy data\experiments.example.csv data\experiments.csv
+copy data\action_memory.example.csv data\action_memory.csv
 ```
 
 If your aggregate exports use different column names, add local schema aliases in `open-growth-loop.toml`:
@@ -222,7 +239,9 @@ ogl import-events --source path\to\aggregate-events.csv --output data\events.csv
 ogl query-backlog --workspace .
 ogl plan --workspace .
 ogl track-experiment --workspace .
+ogl complete --workspace .
 ogl ship --workspace . --asset /docs/setup --artifact https://example.org/docs/setup
+ogl outcome --workspace . --asset /docs/setup --outcome directionally_positive
 ```
 
 Then give `outbox/prompts/latest-prompt.md` or the plan output to Codex and work on one concrete change before recording the public artifact with `ogl ship`.
@@ -237,12 +256,15 @@ For release notes, see [CHANGELOG.md](CHANGELOG.md).
 The planner prioritizes:
 
 1. Staged work that needs public release evidence.
-2. Funnel dropoffs with enough aggregate views.
-3. Search opportunities with impressions and near-ranking positions.
-4. Planned content/docs assets from the inventory.
-5. Waiting for more data.
+2. Completed actions that still need an outcome recorded.
+3. Funnel dropoffs with enough aggregate views.
+4. Search opportunities with impressions and near-ranking positions.
+5. Planned content/docs assets from the inventory.
+6. Waiting for more data.
 
 These rules are deliberately conservative. The tool should reduce thrash, not create a content treadmill.
+
+Action memory gently adjusts candidate scores. Completed actions without outcomes are cooled down until they are reviewed. Exact asset/action repeats are cooled after measurement, while action types with directionally positive outcomes get a small boost for similar future work. Repeated weak outcomes get a small cooldown. This is local ranking context, not a causal impact claim.
 
 ## Project Status
 

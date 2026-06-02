@@ -53,3 +53,7 @@ Implemented stale planned/shipped work detection in `ogl weekly-review` with con
 ### Add Unified Candidate Engine
 
 Implemented shared action candidates and `ogl candidates` so the planner can select one action while exposing alternatives.
+
+### Add Outcome Memory Loop
+
+Implemented `ogl complete`, `ogl outcome`, and local action-memory ranking adjustments so completed work can influence future candidates without sending data to a hosted service.

@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
-from typing import Mapping
+from typing import Iterable, Mapping
 
 from .events import EventRollup, read_event_rollups
 from .inventory import ContentItem, read_inventory
+from .memory import ActionMemoryRecord, read_action_memory
 from .search import SearchRow, rank_search_opportunities, read_search_rows
 
 
@@ -43,23 +44,27 @@ def build_candidates(
     minimum_impressions: int = 25,
     minimum_views: int = 25,
     weak_cta_rate: float = 0.05,
+    memory_path: Path | None = None,
     aliases: Mapping[str, Mapping[str, str]] | None = None,
 ) -> list[Candidate]:
     aliases = aliases or {}
     inventory = read_inventory(inventory_path, aliases.get("content_inventory"))
     search_rows = read_search_rows(search_rows_path, aliases.get("search_rows"))
     event_rollups = read_event_rollups(events_path, aliases.get("events"))
+    memory = read_action_memory(memory_path, aliases.get("action_memory")) if memory_path else []
 
     candidates: list[Candidate] = []
+    candidates.extend(_memory_candidates(memory))
     candidates.extend(_release_candidates(inventory))
     candidates.extend(_funnel_candidates(event_rollups, minimum_views, weak_cta_rate))
     candidates.extend(_search_candidates(search_rows, minimum_impressions))
     candidates.extend(_planned_candidates(inventory))
+    candidates = _apply_memory_adjustments(candidates, memory)
     return sort_candidates(candidates)
 
 
 def sort_candidates(candidates: list[Candidate]) -> list[Candidate]:
-    return sorted(candidates, key=lambda item: (item.priority, -item.score, item.asset))
+    return sorted(candidates, key=lambda item: (bool(item.blocked_by), item.priority, -item.score, item.asset))
 
 
 def render_candidates_markdown(candidates: list[Candidate]) -> str:
@@ -105,6 +110,37 @@ def _release_candidates(inventory: list[ContentItem]) -> list[Candidate]:
                 source="release_evidence",
                 next_steps=release_evidence_checklist(),
                 evidence={"status": item.status, "primary_query": item.primary_query, "owner_note": item.owner_note},
+                blocked_by=[],
+            )
+        )
+    return candidates
+
+
+def _memory_candidates(memory: list[ActionMemoryRecord]) -> list[Candidate]:
+    candidates: list[Candidate] = []
+    for index, record in enumerate(record for record in memory if record.pending_outcome):
+        candidates.append(
+            Candidate(
+                action_type="record_outcome",
+                asset=record.asset,
+                title=f"Record outcome for {record.asset or record.action_type}",
+                reason="A completed action needs an observed outcome before similar work is repeated.",
+                confidence="high",
+                priority=15,
+                score=500 - index,
+                source="action_memory",
+                next_steps=[
+                    "Compare current aggregate search and event signals with the recorded baseline or notes.",
+                    "Record directionally_positive, needs_iteration, or insufficient_sample without overstating causality.",
+                    "Let future candidate ranking use the recorded outcome.",
+                ],
+                evidence={
+                    "memory_id": record.id,
+                    "completed_on": record.completed_on,
+                    "completed_action_type": record.action_type,
+                    "artifact": record.artifact,
+                    "note": record.note,
+                },
                 blocked_by=[],
             )
         )
@@ -173,6 +209,86 @@ def _search_candidates(rows: list[SearchRow], minimum_impressions: int) -> list[
             )
         )
     return candidates
+
+
+def _apply_memory_adjustments(candidates: list[Candidate], memory: list[ActionMemoryRecord]) -> list[Candidate]:
+    if not memory:
+        return candidates
+
+    adjusted: list[Candidate] = []
+    positive_by_action = _count_by_action(record for record in memory if record.positive)
+    negative_by_action = _count_by_action(record for record in memory if record.negative)
+    pending_by_key = {
+        (record.asset, record.action_type): record
+        for record in memory
+        if record.pending_outcome and record.action_type != "record_outcome"
+    }
+    measured_by_key = {
+        (record.asset, record.action_type): record
+        for record in memory
+        if record.status == "measured" and record.action_type != "record_outcome"
+    }
+
+    for candidate in candidates:
+        if candidate.action_type == "record_outcome":
+            adjusted.append(candidate)
+            continue
+
+        multiplier = 1.0
+        notes: list[str] = []
+        blocked_by = list(candidate.blocked_by)
+        pending = pending_by_key.get((candidate.asset, candidate.action_type))
+        if pending:
+            multiplier *= 0.2
+            blocked_by.append(f"Action memory {pending.id} is completed but has no recorded outcome.")
+            notes.append("repeat cooled until pending outcome is recorded")
+        measured = measured_by_key.get((candidate.asset, candidate.action_type))
+        if measured and not measured.negative:
+            multiplier *= 0.2
+            blocked_by.append(f"Action memory {measured.id} already measured this asset/action.")
+            notes.append("exact repeat cooled until source data changes")
+
+        positive_count = positive_by_action.get(candidate.action_type, 0)
+        negative_count = negative_by_action.get(candidate.action_type, 0)
+        if positive_count:
+            boost = min(0.25, positive_count * 0.05)
+            multiplier += boost
+            notes.append(f"action type has {positive_count} positive outcome(s)")
+        if negative_count:
+            cooldown = min(0.30, negative_count * 0.05)
+            multiplier -= cooldown
+            notes.append(f"action type has {negative_count} weak outcome(s)")
+
+        if not notes:
+            adjusted.append(candidate)
+            continue
+
+        evidence = dict(candidate.evidence)
+        evidence["memory_adjustment"] = {
+            "score_multiplier": round(max(0.05, multiplier), 3),
+            "notes": notes,
+        }
+        adjusted.append(
+            replace(
+                candidate,
+                score=max(0.0, candidate.score * max(0.05, multiplier)),
+                confidence="low" if blocked_by else candidate.confidence,
+                evidence=evidence,
+                blocked_by=blocked_by,
+            )
+        )
+
+    return adjusted
+
+
+def _count_by_action(records: Iterable[ActionMemoryRecord]) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for record in records:
+        action_type = record.action_type
+        if not action_type:
+            continue
+        counts[action_type] = counts.get(action_type, 0) + 1
+    return counts
 
 
 def _planned_candidates(inventory: list[ContentItem]) -> list[Candidate]:
