@@ -15,6 +15,7 @@ The tool is intentionally generic. It does not know about any one product, priva
 
 - `ogl init` creates the local `data/` files for a project.
 - `ogl validate` checks that CSV inputs are complete and privacy-safe.
+- `ogl candidates` writes all ranked action candidates considered by the planner.
 - `ogl query-backlog` ranks Search Console rows into maintenance opportunities.
 - `ogl plan` chooses one daily action using conservative rules.
 - `ogl track-experiment` records the action baseline.
@@ -98,6 +99,12 @@ Run the sample planner:
 
 ```bash
 ogl plan --workspace .
+```
+
+Inspect all ranked action candidates:
+
+```bash
+ogl candidates --workspace .
 ```
 
 Write a query backlog:

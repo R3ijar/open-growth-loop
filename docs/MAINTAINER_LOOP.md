@@ -22,10 +22,11 @@ Validation should pass before the planner is trusted.
 
 ```bash
 ogl query-backlog --workspace .
+ogl candidates --workspace .
 ogl plan --workspace .
 ```
 
-The planner chooses one action. That is intentional. Maintainers need less thrash, not a queue of speculative rewrites.
+The candidate report shows all ranked actions considered by the planner. The planner still chooses one action. That is intentional. Maintainers need less thrash, not a queue of speculative rewrites.
 
 If the plan is `release_evidence`, verify the staged asset before creating another page or example:
 

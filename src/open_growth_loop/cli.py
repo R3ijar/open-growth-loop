@@ -5,6 +5,7 @@ import json
 from dataclasses import asdict
 from pathlib import Path
 
+from .candidates import build_candidates, render_candidates_markdown
 from .config import GrowthConfig, load_config
 from .events import import_aggregate_events
 from .experiments import render_reviews_markdown, review_experiments, ship_experiment, track_plan
@@ -40,6 +41,15 @@ def main() -> None:
     plan.add_argument("--minimum-impressions", type=int, default=None)
     plan.add_argument("--minimum-views", type=int, default=None)
     plan.add_argument("--weak-cta-rate", type=float, default=None)
+
+    candidates = subparsers.add_parser("candidates", help="Write all ranked action candidates considered by the planner.")
+    add_workspace_argument(candidates)
+    candidates.add_argument("--inventory", default="", help="Content inventory CSV.")
+    candidates.add_argument("--search-rows", default="", help="Search Console rows CSV.")
+    candidates.add_argument("--events", default="", help="Aggregate events CSV.")
+    candidates.add_argument("--minimum-impressions", type=int, default=None)
+    candidates.add_argument("--minimum-views", type=int, default=None)
+    candidates.add_argument("--weak-cta-rate", type=float, default=None)
 
     query_backlog = subparsers.add_parser("query-backlog", help="Write ranked query opportunities.")
     add_workspace_argument(query_backlog)
@@ -105,6 +115,8 @@ def main() -> None:
         run_validate(workspace, config)
     elif args.command == "plan":
         run_plan(args, workspace, config)
+    elif args.command == "candidates":
+        run_candidates(args, workspace, config)
     elif args.command == "query-backlog":
         run_query_backlog(args, workspace, config)
     elif args.command == "import-events":
@@ -182,6 +194,41 @@ def run_plan(args: argparse.Namespace, workspace: Path, config: GrowthConfig) ->
                 "json": str(json_path),
                 "markdown_history": str(dated_report_path(md_path)),
                 "json_history": str(dated_report_path(json_path)),
+            },
+            indent=2,
+        )
+    )
+
+
+def run_candidates(args: argparse.Namespace, workspace: Path, config: GrowthConfig) -> None:
+    default_inventory, default_search_rows, default_events = default_data_paths(workspace)
+    inventory = Path(args.inventory) if args.inventory else default_inventory
+    search_rows = Path(args.search_rows) if args.search_rows else default_search_rows
+    events = Path(args.events) if args.events else default_events
+    minimum_impressions = args.minimum_impressions if args.minimum_impressions is not None else config.thresholds.minimum_impressions
+    minimum_views = args.minimum_views if args.minimum_views is not None else config.thresholds.minimum_views
+    weak_cta_rate = args.weak_cta_rate if args.weak_cta_rate is not None else config.thresholds.weak_cta_rate
+    candidates = build_candidates(
+        inventory,
+        search_rows,
+        events,
+        minimum_impressions=minimum_impressions,
+        minimum_views=minimum_views,
+        weak_cta_rate=weak_cta_rate,
+        aliases=config.schema_aliases,
+    )
+    md_path = workspace / "outbox" / "candidates" / "latest-candidates.md"
+    json_path = workspace / "outbox" / "candidates" / "latest-candidates.json"
+    latest_md, history_md = write_text_report(md_path, render_candidates_markdown(candidates))
+    latest_json, history_json = write_json_report(json_path, [asdict(candidate) for candidate in candidates])
+    print(
+        json.dumps(
+            {
+                "candidates": len(candidates),
+                "markdown": str(latest_md),
+                "markdown_history": str(history_md),
+                "json": str(latest_json),
+                "json_history": str(history_json),
             },
             indent=2,
         )

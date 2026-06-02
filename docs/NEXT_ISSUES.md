@@ -49,3 +49,7 @@ Implemented `ogl privacy-scan` for private-looking CSV headers and secret-like t
 ### Add Stale Work Detection
 
 Implemented stale planned/shipped work detection in `ogl weekly-review` with configurable stale windows.
+
+### Add Unified Candidate Engine
+
+Implemented shared action candidates and `ogl candidates` so the planner can select one action while exposing alternatives.

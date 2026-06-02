@@ -65,6 +65,23 @@ It is a backlog, not a publishing command.
 
 ## 3. Generate One Daily Plan
 
+Inspect all ranked candidates first:
+
+```bash
+python -m open_growth_loop --workspace . candidates
+```
+
+This writes:
+
+```text
+outbox/candidates/latest-candidates.md
+outbox/candidates/latest-candidates.json
+outbox/candidates/history/YYYY-MM-DD-candidates.md
+outbox/candidates/history/YYYY-MM-DD-candidates.json
+```
+
+Then generate the single selected plan:
+
 ```bash
 python -m open_growth_loop --workspace . plan
 ```

@@ -4,10 +4,9 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Mapping
 
-from .events import EventRollup, read_event_rollups
-from .inventory import ContentItem, next_planned_item, read_inventory, staged_items
+from .candidates import Candidate, build_candidates, candidate_brief, release_evidence_checklist
+from .events import EventRollup
 from .io_utils import first_existing, write_json_report, write_text_report
-from .search import SearchOpportunity, rank_search_opportunities, read_search_rows
 
 
 @dataclass(frozen=True)
@@ -21,18 +20,6 @@ class DailyPlan:
     evidence: dict[str, object]
 
 
-RELEASE_EVIDENCE_CHECKLIST = [
-    "Open the public URL or release artifact for the staged asset.",
-    "Confirm the asset is reachable from the expected public surface, such as docs navigation, README, package metadata, sitemap, or changelog.",
-    "Confirm the published content matches the staged change and avoids unverified adoption or impact claims.",
-    "Record the public artifact URL before tracking or reviewing the experiment.",
-]
-
-
-def release_evidence_checklist() -> list[str]:
-    return list(RELEASE_EVIDENCE_CHECKLIST)
-
-
 def build_daily_plan(
     inventory_path: Path,
     search_rows_path: Path,
@@ -42,112 +29,23 @@ def build_daily_plan(
     weak_cta_rate: float = 0.05,
     aliases: Mapping[str, Mapping[str, str]] | None = None,
 ) -> DailyPlan:
-    aliases = aliases or {}
-    inventory = read_inventory(inventory_path, aliases.get("content_inventory"))
-    search_rows = read_search_rows(search_rows_path, aliases.get("search_rows"))
-    event_rollups = read_event_rollups(events_path, aliases.get("events"))
     thresholds = {
         "minimum_impressions": minimum_impressions,
         "minimum_views": minimum_views,
         "weak_cta_rate": weak_cta_rate,
     }
-    skipped_rules: list[str] = []
-
-    staged = staged_items(inventory)
-    if staged:
-        item = staged[0]
-        return DailyPlan(
-            action_type="release_evidence",
-            asset=item.asset,
-            title=f"Verify staged release for {item.asset}",
-            reason="Staged work should be proven public before creating another asset.",
-            confidence="high",
-            next_steps=release_evidence_checklist(),
-            evidence=_with_decision(
-                {"status": item.status, "primary_query": item.primary_query, "owner_note": item.owner_note},
-                "release_evidence",
-                "A staged inventory item is the highest-priority rule because pending work should be proven public before starting another action.",
-                skipped_rules,
-                thresholds,
-            ),
-        )
-    skipped_rules.append("release_evidence: no staged inventory item was found")
-
-    funnel = best_funnel_dropoff(event_rollups, minimum_views, weak_cta_rate)
-    if funnel:
-        return DailyPlan(
-            action_type="fix_funnel",
-            asset=funnel.asset,
-            title=f"Improve CTA path for {funnel.asset}",
-            reason="Aggregate events show enough views but weak downstream movement.",
-            confidence="medium",
-            next_steps=[
-                "Make the first payoff clearer above the fold.",
-                "Move the primary CTA closer to the solved user problem.",
-                "Track the change as an experiment before reviewing outcome.",
-            ],
-            evidence=_with_decision(
-                {
-                    "views": funnel.views,
-                    "ctas": funnel.ctas,
-                    "conversions": funnel.conversions,
-                    "cta_rate": round(funnel.cta_rate, 4),
-                    "conversion_rate": round(funnel.conversion_rate, 4),
-                },
-                "fix_funnel",
-                "An aggregate event rollup has enough views and weak downstream movement.",
-                skipped_rules,
-                thresholds,
-            ),
-        )
-    skipped_rules.append(f"fix_funnel: no asset met {minimum_views} views with CTA rate below {weak_cta_rate:.3f} or zero conversions")
-
-    opportunities = rank_search_opportunities(search_rows, minimum_impressions)
-    if opportunities:
-        opportunity = opportunities[0]
-        return DailyPlan(
-            action_type=f"search_{opportunity.opportunity_type}",
-            asset=opportunity.page,
-            title=f"Improve search fit for {opportunity.page}",
-            reason=opportunity.reason,
-            confidence="medium",
-            next_steps=[
-                "Check whether the page answers the query directly.",
-                "Improve the title, intro, example, or internal links without changing unrelated pages.",
-                "Track the change and wait for enough impressions before reviewing.",
-            ],
-            evidence=_with_decision(
-                asdict(opportunity),
-                "search_opportunity",
-                "A Search Console row met the impression threshold and ranked as the strongest search opportunity.",
-                skipped_rules,
-                thresholds,
-            ),
-        )
-    skipped_rules.append(f"search_opportunity: no search row met the {minimum_impressions} impression threshold and opportunity rules")
-
-    planned = next_planned_item(inventory)
-    if planned:
-        return DailyPlan(
-            action_type="create_asset",
-            asset=planned.asset,
-            title=f"Create planned {planned.type}: {planned.asset}",
-            reason="No stronger measured opportunity is available, so use the next queued buyer/user-intent asset.",
-            confidence="low",
-            next_steps=[
-                "Draft the smallest useful version.",
-                "Connect it to the relevant docs, example, or project action.",
-                "Mark it staged until public release evidence exists.",
-            ],
-            evidence=_with_decision(
-                {"primary_query": planned.primary_query, "cta": planned.cta, "owner_note": planned.owner_note},
-                "create_asset",
-                "No stronger measured signal exists, so the next planned inventory item is selected.",
-                skipped_rules,
-                thresholds,
-            ),
-        )
-    skipped_rules.append("create_asset: no planned inventory item was found")
+    candidates = build_candidates(
+        inventory_path,
+        search_rows_path,
+        events_path,
+        minimum_impressions=minimum_impressions,
+        minimum_views=minimum_views,
+        weak_cta_rate=weak_cta_rate,
+        aliases=aliases,
+    )
+    if candidates:
+        selected = candidates[0]
+        return _plan_from_candidate(selected, candidates[1:], thresholds)
 
     return DailyPlan(
         action_type="wait_for_data",
@@ -164,8 +62,9 @@ def build_daily_plan(
             {},
             "wait_for_data",
             "No staged work, measured funnel issue, search opportunity, or planned item is available.",
-            skipped_rules,
+            _missing_rule_summaries(set(), thresholds),
             thresholds,
+            [],
         ),
     )
 
@@ -195,6 +94,27 @@ def best_funnel_dropoff(rollups: list[EventRollup], minimum_views: int, weak_cta
     if not candidates:
         return None
     return sorted(candidates, key=lambda item: (item.conversions == 0, item.views), reverse=True)[0]
+
+
+def _plan_from_candidate(candidate: Candidate, alternatives: list[Candidate], thresholds: dict[str, object]) -> DailyPlan:
+    present_sources = {candidate.source, *(item.source for item in alternatives)}
+    skipped_rules = _missing_rule_summaries(present_sources, thresholds, before_priority=candidate.priority)
+    return DailyPlan(
+        action_type=candidate.action_type,
+        asset=candidate.asset,
+        title=candidate.title,
+        reason=candidate.reason,
+        confidence=candidate.confidence,
+        next_steps=list(candidate.next_steps),
+        evidence=_with_decision(
+            dict(candidate.evidence),
+            candidate.source,
+            candidate.reason,
+            skipped_rules,
+            thresholds,
+            alternatives[:5],
+        ),
+    )
 
 
 def render_plan_markdown(plan: DailyPlan) -> str:
@@ -228,6 +148,15 @@ def render_plan_markdown(plan: DailyPlan) -> str:
         if skipped:
             lines.extend(["", "### Rules Skipped", ""])
             lines.extend(f"- {item}" for item in skipped)
+        alternatives = decision.get("alternatives", [])
+        if alternatives:
+            lines.extend(["", "### Alternatives", ""])
+            for item in alternatives:
+                if isinstance(item, dict):
+                    lines.append(
+                        f"- {item.get('action_type', 'unknown')} for {item.get('asset') or 'none'} "
+                        f"(source={item.get('source', 'unknown')}, score={item.get('score', 'unknown')})"
+                    )
     lines.extend(["", "## Evidence", "", "```json"])
     import json
 
@@ -243,6 +172,7 @@ def _with_decision(
     why_selected: str,
     skipped_rules: list[str],
     thresholds: dict[str, object],
+    alternatives: list[Candidate],
 ) -> dict[str, object]:
     payload = dict(evidence)
     payload["decision"] = {
@@ -250,5 +180,19 @@ def _with_decision(
         "why_selected": why_selected,
         "skipped_rules": list(skipped_rules),
         "thresholds": dict(thresholds),
+        "alternatives": [candidate_brief(item) for item in alternatives],
     }
     return payload
+
+
+def _missing_rule_summaries(present_sources: set[str], thresholds: dict[str, object], before_priority: int = 100) -> list[str]:
+    minimum_impressions = int(thresholds["minimum_impressions"])
+    minimum_views = int(thresholds["minimum_views"])
+    weak_cta_rate = float(thresholds["weak_cta_rate"])
+    rules = [
+        ("release_evidence", 10, "release_evidence: no staged inventory item was found"),
+        ("fix_funnel", 20, f"fix_funnel: no asset met {minimum_views} views with CTA rate below {weak_cta_rate:.3f} or zero conversions"),
+        ("search_opportunity", 30, f"search_opportunity: no search row met the {minimum_impressions} impression threshold and opportunity rules"),
+        ("create_asset", 40, "create_asset: no planned inventory item was found"),
+    ]
+    return [message for source, priority, message in rules if priority < before_priority and source not in present_sources]
