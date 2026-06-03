@@ -95,7 +95,15 @@ ogl privacy-scan --workspace .
 
 Run this before publishing sample workspaces, docs examples, or issue attachments. It checks CSV headers for private-looking columns and scans text files for email addresses or secret-like assignments.
 
-## 10. Review Later
+## 10. Check Release Readiness
+
+```bash
+ogl release-brief --workspace .
+```
+
+Run this before tagging a release, updating public application text, or asking Codex to help with release notes. The brief summarizes validation, freshness, privacy scan status, latest plan, example coverage, changelog state, README coverage, and manual claim guardrails.
+
+## 11. Review Later
 
 ```bash
 ogl review-experiments --workspace .

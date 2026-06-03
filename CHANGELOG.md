@@ -4,8 +4,13 @@ All notable changes to Open Growth Loop are documented here.
 
 ## Unreleased
 
+## 0.1.3 - 2026-06-03
+
 ### Added
 
+- `ogl release-brief` command that writes Markdown and JSON release-readiness reports covering validation, freshness, privacy scan status, latest plan, example coverage, changelog state, README planner coverage, and manual adoption-claim guardrails.
+- Dogfooding documentation for using Open Growth Loop to maintain this repository.
+- Release-readiness documentation for interpreting `ready with manual review` reports.
 - Runnable synthetic package-page and release-note sample workspaces, including documented expected `ogl plan` outputs.
 - README planner-engine coverage section that explains the public maintainer surfaces supported by the generic rules.
 

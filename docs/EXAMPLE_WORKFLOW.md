@@ -143,7 +143,24 @@ outbox/issues/history/YYYY-MM-DD-issue-draft.md
 
 The issue draft turns the latest plan into a public-facing GitHub issue shape: title, context, proposed work, acceptance criteria, summarized evidence, and review notes. It is file-only by default. Review it before posting so project-private details stay out of public issues.
 
-## 6. Track, Ship, And Review Later
+## 6. Check Release Readiness
+
+```bash
+python -m open_growth_loop --workspace . release-brief
+```
+
+This writes:
+
+```text
+outbox/release-brief/latest-release-brief.md
+outbox/release-brief/latest-release-brief.json
+outbox/release-brief/history/YYYY-MM-DD-release-brief.md
+outbox/release-brief/history/YYYY-MM-DD-release-brief.json
+```
+
+The release brief summarizes validation, freshness, privacy scan status, latest plan, example coverage, changelog state, README planner coverage, and manual claim guardrails. It is useful before tagging releases, posting issue drafts, or updating public application text.
+
+## 7. Track, Ship, And Review Later
 
 After making the public change, record the baseline:
 

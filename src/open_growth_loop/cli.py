@@ -17,6 +17,7 @@ from .planner import DailyPlan, build_daily_plan, default_data_paths, default_me
 from .privacy import render_privacy_scan_markdown, scan_privacy
 from .prompts import render_codex_prompt
 from .query_backlog import build_query_backlog, render_query_backlog
+from .release_brief import build_release_brief, write_release_brief_reports
 from .weekly import build_weekly_review, render_weekly_review
 from .workspace import init_workspace, validate_workspace
 
@@ -132,6 +133,10 @@ def main() -> None:
     add_workspace_argument(issue_drafts)
     issue_drafts.add_argument("--plan-json", default="", help="Plan JSON. Defaults to outbox/plans/latest-plan.json.")
 
+    release_brief = subparsers.add_parser("release-brief", help="Write a release-readiness brief for maintainers.")
+    add_workspace_argument(release_brief)
+    release_brief.add_argument("--include-tests", action="store_true", help="Include tests/ directories in the privacy scan.")
+
     args = parser.parse_args()
     workspace = Path(args.workspace or args.global_workspace or ".").resolve()
     try:
@@ -174,6 +179,8 @@ def main() -> None:
         run_prompt(args, workspace)
     elif args.command == "issue-drafts":
         run_issue_drafts(args, workspace)
+    elif args.command == "release-brief":
+        run_release_brief(args, workspace, config)
 
 
 def add_workspace_argument(parser: argparse.ArgumentParser) -> None:
@@ -493,6 +500,24 @@ def run_issue_drafts(args: argparse.Namespace, workspace: Path) -> None:
                 "title": issue_title(plan),
                 "issue_draft": str(latest_path),
                 "issue_draft_history": str(history_path),
+            },
+            indent=2,
+        )
+    )
+
+
+def run_release_brief(args: argparse.Namespace, workspace: Path, config: GrowthConfig) -> None:
+    brief = build_release_brief(workspace, config, include_tests=args.include_tests)
+    md_path, md_history, json_path, json_history = write_release_brief_reports(brief, workspace / "outbox" / "release-brief")
+    print(
+        json.dumps(
+            {
+                "ready": brief.ready,
+                "warnings": len(brief.warnings),
+                "markdown": str(md_path),
+                "markdown_history": str(md_history),
+                "json": str(json_path),
+                "json_history": str(json_history),
             },
             indent=2,
         )

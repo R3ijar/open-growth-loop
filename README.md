@@ -9,7 +9,7 @@ Local-first CLI for open-source maintainers who want **one evidence-based docs, 
 Open Growth Loop turns Search Console exports, aggregate event CSVs, content inventory, and experiment logs into a conservative maintainer workflow:
 
 ```text
-local CSVs -> freshness check -> ranked candidates -> one daily plan -> issue/prompt -> outcome memory
+local CSVs -> freshness check -> ranked candidates -> one daily plan -> issue/prompt -> release brief -> outcome memory
 ```
 
 ![Open Growth Loop terminal preview](docs/assets/open-growth-loop-preview-v012.svg)
@@ -25,9 +25,13 @@ After one local run, a maintainer gets:
 - one conservative daily plan with Decision Trace v2 explaining why it won
 - a Codex-ready prompt and a reviewable GitHub issue draft
 - local action memory so completed work and later outcomes shape future ranking
+- a release-readiness brief before tagging releases or updating public application text
 
-## v0.1.2 Highlights
+## v0.1.3 Highlights
 
+- **Release Briefs:** `ogl release-brief` summarizes validation, freshness, privacy, latest plan, example coverage, changelog state, README coverage, and claim guardrails.
+- **Dogfooding Docs:** Open Growth Loop now documents how it uses its own loop to maintain this repository.
+- **Package Page And Release Note Examples:** runnable synthetic examples show the same planner rules on additional OSS maintainer surfaces.
 - **Data Freshness v1:** warns when real local CSV inputs are stale, empty, missing, future-dated, or only sample data.
 - **Decision Trace v2:** explains the selected winner, ranked alternatives, losing reasons, thresholds, blocked state, and memory notes.
 - **Local Issue Drafts:** turns the latest plan into reviewable Markdown without creating GitHub issues automatically.
@@ -70,6 +74,7 @@ python -m open_growth_loop --workspace . candidates
 python -m open_growth_loop --workspace . plan
 python -m open_growth_loop --workspace . prompt
 python -m open_growth_loop --workspace . issue-drafts
+python -m open_growth_loop --workspace . release-brief
 ```
 
 On macOS/Linux, activate the environment with `. .venv/bin/activate` before running the install and CLI commands.
@@ -125,6 +130,7 @@ python -m open_growth_loop --workspace examples/package-page-cta prompt
 - `ogl privacy-scan` checks local files for private-data leakage risks.
 - `ogl prompt` writes a Codex-ready prompt for the next focused change.
 - `ogl issue-drafts` writes a reviewable local Markdown issue draft from the latest plan.
+- `ogl release-brief` writes a release-readiness brief with validation, freshness, privacy, examples, changelog, and claim guardrails.
 
 ## Inputs And Outputs
 
@@ -146,6 +152,7 @@ It writes reviewable Markdown/JSON files under `outbox/`:
 - local action memory for completed work and outcomes
 - a focused prompt for Codex or another coding assistant
 - a local GitHub issue draft that can be reviewed before posting
+- a release-readiness brief for maintainers
 
 Each report keeps the familiar `latest-*` path for daily use and also writes a dated copy under `history/` so maintainers can compare decisions over time.
 
@@ -284,6 +291,12 @@ Write a reviewable local GitHub issue draft from the latest plan:
 ogl issue-drafts --workspace .
 ```
 
+Write a release-readiness brief:
+
+```bash
+ogl release-brief --workspace .
+```
+
 Run tests:
 
 ```bash
@@ -355,6 +368,7 @@ ogl freshness --workspace .
 ogl query-backlog --workspace .
 ogl plan --workspace .
 ogl issue-drafts --workspace .
+ogl release-brief --workspace .
 ogl track-experiment --workspace .
 ogl complete --workspace .
 ogl ship --workspace . --asset /docs/setup --artifact https://example.org/docs/setup
@@ -365,6 +379,8 @@ Then give `outbox/prompts/latest-prompt.md` or the plan output to Codex and work
 
 For a full walkthrough using the bundled sample CSVs, see [docs/EXAMPLE_WORKFLOW.md](docs/EXAMPLE_WORKFLOW.md).
 For runnable example workspaces covering release evidence, funnel dropoff, aliased exports, package pages, and release notes, see [examples/README.md](examples/README.md).
+For how Open Growth Loop dogfoods its own maintainer workflow, see [docs/DOGFOODING.md](docs/DOGFOODING.md).
+For release readiness checks, see [docs/RELEASE_READINESS.md](docs/RELEASE_READINESS.md).
 For the initial public backlog, see [docs/NEXT_ISSUES.md](docs/NEXT_ISSUES.md).
 For release notes, see [CHANGELOG.md](CHANGELOG.md).
 
@@ -389,7 +405,7 @@ Generated plans also include a Data Freshness block. Sample `.example.csv` files
 
 ## Project Status
 
-Current release: v0.1.2.
+Current release: v0.1.3.
 
 This is an early open-source extraction of a local growth-operations loop. It is ready for small CSV-driven maintainer workflows and intended to grow through issues, examples, and contributor feedback.
 
