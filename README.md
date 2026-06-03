@@ -17,7 +17,7 @@ Turn Search Console CSVs, aggregate event CSVs, content inventory, and experimen
 
 | Signal | Current state |
 | --- | --- |
-| Maintainer workflow | demo -> validation -> freshness -> candidates -> plan -> issue/prompt -> release brief -> report index -> outcome |
+| Maintainer workflow | doctor -> demo -> validation -> freshness -> candidates -> plan -> issue/prompt -> release brief -> report index -> outcome |
 | Runnable examples | 5 synthetic workspaces covering release evidence, funnel dropoff, aliased exports, package pages, and release notes |
 | Release readiness | `ogl release-brief` checks validation, freshness, privacy, examples, changelog, README coverage, and claim guardrails |
 | Verification | 56 tests, CI passing, privacy scan clean |
@@ -85,6 +85,7 @@ python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -e .
 python -m open_growth_loop --workspace . validate
+python -m open_growth_loop --workspace . doctor
 python -m open_growth_loop --workspace . demo
 python -m open_growth_loop --workspace . freshness
 python -m open_growth_loop --workspace . candidates
@@ -135,6 +136,7 @@ python -m open_growth_loop --workspace examples/package-page-cta prompt
 
 - `ogl init` creates the local `data/` files for a project.
 - `ogl validate` checks that CSV inputs are complete and privacy-safe.
+- `ogl doctor` writes one readiness report across validation, freshness, privacy, candidates, planning, and release review.
 - `ogl demo` writes the main local report set in one reviewable run.
 - `ogl freshness` reports whether real local CSV inputs are recent enough to trust.
 - `ogl candidates` writes all ranked action candidates considered by the planner.

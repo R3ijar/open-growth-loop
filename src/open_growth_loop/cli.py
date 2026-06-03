@@ -7,6 +7,7 @@ from pathlib import Path
 
 from .candidates import build_candidates, render_candidates_markdown
 from .config import GrowthConfig, load_config
+from .doctor import build_doctor_report, write_doctor_reports
 from .events import import_aggregate_events
 from .experiments import render_reviews_markdown, review_experiments, ship_experiment, track_plan
 from .freshness import build_freshness_report, write_freshness_reports
@@ -37,6 +38,10 @@ def main() -> None:
 
     validate = subparsers.add_parser("validate", help="Validate local CSV inputs and privacy-safe headers.")
     add_workspace_argument(validate)
+
+    doctor = subparsers.add_parser("doctor", help="Run one-shot workspace readiness checks.")
+    add_workspace_argument(doctor)
+    doctor.add_argument("--include-tests", action="store_true", help="Include tests/ directories in privacy checks.")
 
     freshness = subparsers.add_parser("freshness", help="Report whether local CSV inputs are fresh enough to trust.")
     add_workspace_argument(freshness)
@@ -158,6 +163,8 @@ def main() -> None:
         run_init(args, workspace)
     elif args.command == "validate":
         run_validate(workspace, config)
+    elif args.command == "doctor":
+        run_doctor(args, workspace, config)
     elif args.command == "freshness":
         run_freshness(args, workspace, config)
     elif args.command == "plan":
@@ -225,6 +232,27 @@ def run_validate(workspace: Path, config: GrowthConfig) -> None:
     result = validate_workspace(workspace, config)
     print(json.dumps(asdict(result), indent=2))
     if not result.ok:
+        raise SystemExit(1)
+
+
+def run_doctor(args: argparse.Namespace, workspace: Path, config: GrowthConfig) -> None:
+    report = build_doctor_report(workspace, config, include_tests=args.include_tests)
+    md_path, md_history, json_path, json_history = write_doctor_reports(report, workspace / "outbox" / "doctor")
+    print(
+        json.dumps(
+            {
+                "ok": report.ok,
+                "checks": [asdict(check) for check in report.checks],
+                "next_steps": report.next_steps,
+                "markdown": str(md_path),
+                "markdown_history": str(md_history),
+                "json": str(json_path),
+                "json_history": str(json_history),
+            },
+            indent=2,
+        )
+    )
+    if not report.ok:
         raise SystemExit(1)
 
 
