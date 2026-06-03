@@ -8,6 +8,10 @@ All notable changes to Open Growth Loop are documented here.
 
 - README landing-page polish with a stronger first-screen message, maintainer workflow visual, release badge, at-a-glance project signals, and clearer output map.
 
+### Fixed
+
+- README workflow visual helper labels now wrap cleanly inside their boxes on GitHub.
+
 ## 0.1.3 - 2026-06-03
 
 ### Added
