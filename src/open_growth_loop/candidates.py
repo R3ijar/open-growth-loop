@@ -88,6 +88,11 @@ def render_candidates_markdown(candidates: list[Candidate]) -> str:
                 "",
             ]
         )
+        notes = _candidate_notes(candidate)
+        if notes:
+            lines.extend(["Notes:"])
+            lines.extend(f"- {item}" for item in notes)
+            lines.append("")
         if candidate.blocked_by:
             lines.extend(["Blocked by:"])
             lines.extend(f"- {item}" for item in candidate.blocked_by)
@@ -321,7 +326,22 @@ def candidate_brief(candidate: Candidate) -> dict[str, object]:
         "action_type": candidate.action_type,
         "asset": candidate.asset,
         "source": candidate.source,
+        "confidence": candidate.confidence,
         "priority": candidate.priority,
         "score": round(candidate.score, 3),
         "reason": candidate.reason,
+        "blocked_by": list(candidate.blocked_by),
     }
+
+
+def _candidate_notes(candidate: Candidate) -> list[str]:
+    notes: list[str] = []
+    adjustment = candidate.evidence.get("memory_adjustment")
+    if isinstance(adjustment, dict):
+        raw_notes = adjustment.get("notes", [])
+        if isinstance(raw_notes, list):
+            notes.extend(str(item) for item in raw_notes if str(item).strip())
+        multiplier = adjustment.get("score_multiplier")
+        if multiplier is not None:
+            notes.append(f"score multiplier: {multiplier}")
+    return notes

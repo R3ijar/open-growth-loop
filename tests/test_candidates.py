@@ -106,9 +106,11 @@ class CandidateTests(unittest.TestCase):
             )
 
             candidates = build_candidates(inventory, search, events, memory_path=memory)
+            markdown = render_candidates_markdown(candidates)
 
         self.assertEqual(candidates[0].action_type, "search_striking_distance")
         self.assertIn("memory_adjustment", candidates[0].evidence)
+        self.assertIn("action type has 1 positive outcome(s)", markdown)
 
     def test_measured_same_asset_action_is_not_reselected_first(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

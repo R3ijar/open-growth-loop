@@ -28,6 +28,8 @@ ogl plan --workspace .
 
 The candidate report shows all ranked actions considered by the planner. The planner still chooses one action. That is intentional. Maintainers need less thrash, not a queue of speculative rewrites.
 
+The plan includes Decision Trace v2 under `evidence.decision`. Use it to audit the selected winner, competing alternatives, why alternatives lost, threshold notes, blocked follow-ups, and action-memory adjustments before doing the work.
+
 If the plan is `release_evidence`, verify the staged asset before creating another page or example:
 
 - open the public URL or release artifact

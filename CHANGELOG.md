@@ -7,6 +7,7 @@ All notable changes to Open Growth Loop are documented here.
 ### Added
 
 - Local `ogl issue-drafts` command that turns the latest plan into a reviewable Markdown GitHub issue draft without requiring GitHub auth.
+- Decision Trace v2 in generated plans, including winner metadata, ranked alternatives, losing reasons, thresholds, blocked state, and memory notes.
 
 ### Fixed
 

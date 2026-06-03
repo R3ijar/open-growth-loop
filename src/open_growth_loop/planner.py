@@ -67,6 +67,7 @@ def build_daily_plan(
             _missing_rule_summaries(set(), thresholds),
             thresholds,
             [],
+            None,
         ),
     )
 
@@ -119,6 +120,7 @@ def _plan_from_candidate(candidate: Candidate, alternatives: list[Candidate], th
             skipped_rules,
             thresholds,
             alternatives[:5],
+            candidate,
         ),
     )
 
@@ -163,6 +165,22 @@ def render_plan_markdown(plan: DailyPlan) -> str:
                         f"- {item.get('action_type', 'unknown')} for {item.get('asset') or 'none'} "
                         f"(source={item.get('source', 'unknown')}, score={item.get('score', 'unknown')})"
                     )
+        comparison = decision.get("comparison", [])
+        if comparison:
+            lines.extend(["", "### Candidate Comparison", ""])
+            for item in comparison:
+                if not isinstance(item, dict):
+                    continue
+                reasons = item.get("lost_because", [])
+                reason_text = "; ".join(str(reason) for reason in reasons) if isinstance(reasons, list) else str(reasons)
+                lines.append(
+                    f"- #{item.get('rank', '?')} {item.get('action_type', 'unknown')} for {item.get('asset') or 'none'} "
+                    f"lost because: {reason_text}"
+                )
+        audit_notes = decision.get("audit_notes", [])
+        if audit_notes:
+            lines.extend(["", "### Audit Notes", ""])
+            lines.extend(f"- {item}" for item in audit_notes if str(item).strip())
     lines.extend(["", "## Evidence", "", "```json"])
     import json
 
@@ -179,16 +197,171 @@ def _with_decision(
     skipped_rules: list[str],
     thresholds: dict[str, object],
     alternatives: list[Candidate],
+    selected: Candidate | None,
 ) -> dict[str, object]:
     payload = dict(evidence)
     payload["decision"] = {
+        "trace_version": 2,
         "selected_rule": selected_rule,
         "why_selected": why_selected,
         "skipped_rules": list(skipped_rules),
         "thresholds": dict(thresholds),
         "alternatives": [candidate_brief(item) for item in alternatives],
+        "winner": _winner_trace(selected, selected_rule, why_selected, thresholds),
+        "comparison": [_candidate_comparison(item, selected, index + 2, thresholds) for index, item in enumerate(alternatives)],
+        "audit_notes": _audit_notes(selected, skipped_rules),
     }
     return payload
+
+
+def _winner_trace(
+    selected: Candidate | None,
+    selected_rule: str,
+    why_selected: str,
+    thresholds: dict[str, object],
+) -> dict[str, object]:
+    if selected is None:
+        return {
+            "action_type": "wait_for_data",
+            "asset": "",
+            "source": selected_rule,
+            "selection_reason": why_selected,
+            "threshold_notes": _wait_threshold_notes(thresholds),
+            "signal_summary": [],
+            "memory_notes": [],
+            "blocked_by": [],
+        }
+    trace = _candidate_trace(selected, rank=1, thresholds=thresholds)
+    trace["selection_reason"] = "Selected as the highest-ranked unblocked candidate after conservative rule priority, score, and asset tie-breaks."
+    return trace
+
+
+def _candidate_comparison(
+    candidate: Candidate,
+    selected: Candidate | None,
+    rank: int,
+    thresholds: dict[str, object],
+) -> dict[str, object]:
+    trace = _candidate_trace(candidate, rank=rank, thresholds=thresholds)
+    trace["lost_because"] = _lost_because(candidate, selected)
+    return trace
+
+
+def _candidate_trace(candidate: Candidate, rank: int, thresholds: dict[str, object]) -> dict[str, object]:
+    return {
+        "rank": rank,
+        "action_type": candidate.action_type,
+        "asset": candidate.asset,
+        "source": candidate.source,
+        "priority": candidate.priority,
+        "score": round(candidate.score, 3),
+        "confidence": candidate.confidence,
+        "blocked_by": list(candidate.blocked_by),
+        "signal_summary": _signal_summary(candidate),
+        "threshold_notes": _threshold_notes(candidate, thresholds),
+        "memory_notes": _memory_notes(candidate),
+    }
+
+
+def _lost_because(candidate: Candidate, selected: Candidate | None) -> list[str]:
+    if selected is None:
+        return ["No selected candidate was available."]
+
+    reasons: list[str] = []
+    if candidate.blocked_by:
+        reasons.append("blocked by local action memory or missing follow-up evidence")
+    if selected.source == "release_evidence" and candidate.source != "release_evidence":
+        reasons.append("staged release evidence has the highest conservative priority")
+    elif selected.source == "action_memory" and candidate.source != "action_memory":
+        reasons.append("pending outcomes are reviewed before repeating or starting similar work")
+    if candidate.priority > selected.priority:
+        reasons.append(f"lower rule priority ({candidate.priority}) than the selected priority ({selected.priority})")
+    elif candidate.priority == selected.priority and candidate.score < selected.score:
+        reasons.append(f"lower score ({candidate.score:.3f}) than the selected score ({selected.score:.3f})")
+    elif candidate.priority == selected.priority and candidate.score == selected.score and candidate.asset > selected.asset:
+        reasons.append("same priority and score, but asset tie-break ranked later")
+    if not reasons:
+        reasons.append("ranked below the selected action after conservative sort order")
+    return reasons
+
+
+def _signal_summary(candidate: Candidate) -> list[str]:
+    summary: list[str] = []
+    for key in (
+        "status",
+        "primary_query",
+        "views",
+        "ctas",
+        "conversions",
+        "cta_rate",
+        "conversion_rate",
+        "query",
+        "impressions",
+        "clicks",
+        "ctr",
+        "position",
+        "opportunity_type",
+        "memory_id",
+        "completed_on",
+        "completed_action_type",
+    ):
+        value = candidate.evidence.get(key)
+        if value is None or value == "":
+            continue
+        summary.append(f"{key}={value}")
+    return summary[:8]
+
+
+def _threshold_notes(candidate: Candidate, thresholds: dict[str, object]) -> list[str]:
+    if candidate.source == "fix_funnel":
+        return [
+            f"minimum_views={thresholds['minimum_views']}",
+            f"weak_cta_rate={float(thresholds['weak_cta_rate']):.3f}",
+        ]
+    if candidate.source == "search_opportunity":
+        return [f"minimum_impressions={thresholds['minimum_impressions']}"]
+    if candidate.source == "release_evidence":
+        return ["staged inventory status outranks new work"]
+    if candidate.source == "action_memory":
+        return ["completed actions with pending outcomes outrank new work"]
+    if candidate.source == "create_asset":
+        return ["planned inventory items are used only after stronger signals are absent"]
+    return []
+
+
+def _wait_threshold_notes(thresholds: dict[str, object]) -> list[str]:
+    return [
+        f"minimum_impressions={thresholds['minimum_impressions']}",
+        f"minimum_views={thresholds['minimum_views']}",
+        f"weak_cta_rate={float(thresholds['weak_cta_rate']):.3f}",
+    ]
+
+
+def _memory_notes(candidate: Candidate) -> list[str]:
+    notes: list[str] = []
+    adjustment = candidate.evidence.get("memory_adjustment")
+    if isinstance(adjustment, dict):
+        raw_notes = adjustment.get("notes", [])
+        if isinstance(raw_notes, list):
+            notes.extend(str(item) for item in raw_notes if str(item).strip())
+        multiplier = adjustment.get("score_multiplier")
+        if multiplier is not None:
+            notes.append(f"score_multiplier={multiplier}")
+    if candidate.blocked_by:
+        notes.extend(candidate.blocked_by)
+    return notes
+
+
+def _audit_notes(selected: Candidate | None, skipped_rules: list[str]) -> list[str]:
+    notes = [
+        "Candidates are sorted by blocked state, conservative rule priority, descending score, and asset path.",
+        "Scores rank candidates inside a rule; conservative rule priority can intentionally beat a higher raw score.",
+    ]
+    if selected is None:
+        notes.append("No candidate met the current thresholds or inventory states.")
+    if skipped_rules:
+        notes.append("Skipped rules document stronger-priority rules that produced no candidate.")
+    return notes
 
 
 def _missing_rule_summaries(present_sources: set[str], thresholds: dict[str, object], before_priority: int = 100) -> list[str]:

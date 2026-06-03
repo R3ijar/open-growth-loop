@@ -108,6 +108,8 @@ With the sample data, the planner chooses the staged checklist first:
 
 That is intentional. Staged work should be verified before starting another speculative docs asset.
 
+The generated plan also includes Decision Trace v2. In Markdown, this appears as a candidate comparison showing why lower-ranked actions lost. In JSON, `evidence.decision.winner` records the selected action and `evidence.decision.comparison` records ranked alternatives, losing reasons, threshold notes, blocked state, and memory notes.
+
 ## 4. Generate A Codex Prompt
 
 ```bash

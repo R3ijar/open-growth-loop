@@ -17,10 +17,10 @@
 - Local action memory with completed-action outcomes.
 - Local GitHub issue draft export as Markdown.
 - Configurable stale-work windows.
+- Decision Trace v2 for competing candidates.
 
 ## 0.2
 
-- More decision trace detail for competing candidates.
 - More sample data shapes for package pages and release notes.
 
 ## 0.3

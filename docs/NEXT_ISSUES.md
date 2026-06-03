@@ -61,3 +61,7 @@ Implemented `ogl complete`, `ogl outcome`, and local action-memory ranking adjus
 ### Add Local Issue Draft Export
 
 Implemented `ogl issue-drafts` so the latest daily plan can become a reviewable Markdown GitHub issue draft without requiring GitHub auth or posting anything automatically.
+
+### Add Decision Trace V2
+
+Implemented richer plan traces with selected winner metadata, ranked alternatives, losing reasons, threshold notes, blocked follow-ups, and local action-memory notes.

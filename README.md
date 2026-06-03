@@ -24,6 +24,7 @@ The tool is intentionally generic. It does not know about any one product, priva
 | It is easy to start new docs before shipping staged work. | Prioritizes public release evidence before speculative new pages. |
 | Small samples can make every experiment look important. | Marks weak evidence as insufficient instead of claiming success. |
 | Assistants need focused tasks, not vague growth goals. | Writes one Codex-ready prompt from the selected daily plan. |
+| It is hard to trust a black-box recommendation. | Explains why the selected action won and why alternatives lost. |
 | Past work gets forgotten. | Records completed actions and outcomes so future ranking learns locally. |
 
 ## 60-Second Quickstart
@@ -89,6 +90,7 @@ It writes reviewable Markdown/JSON files under `outbox/`:
 
 - a ranked query backlog
 - one daily action plan
+- a decision trace with the winner, alternatives, losing reasons, thresholds, and memory notes
 - an experiment review
 - local action memory for completed work and outcomes
 - a focused prompt for Codex or another coding assistant
@@ -321,6 +323,8 @@ The planner prioritizes:
 These rules are deliberately conservative. The tool should reduce thrash, not create a content treadmill.
 
 Action memory gently adjusts candidate scores. Completed actions without outcomes are cooled down until they are reviewed. Exact asset/action repeats are cooled after measurement, while action types with directionally positive outcomes get a small boost for similar future work. Repeated weak outcomes get a small cooldown. This is local ranking context, not a causal impact claim.
+
+Generated plans include a Decision Trace v2 block. It records the selected winner, ranked alternatives, why each alternative lost, thresholds used, blocked follow-ups, and memory adjustments. The trace is meant to be auditable by maintainers before they hand work to Codex or open an issue.
 
 ## Project Status
 
