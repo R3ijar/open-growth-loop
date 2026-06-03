@@ -2,15 +2,15 @@
 
 This is the initial public backlog for Open Growth Loop. Each open item is small enough to become a focused GitHub issue.
 
-## Add Optional GitHub Issue Export
+## Add Optional GitHub Issue Creation
 
-Maintainers may want to turn daily plans or backlog entries into GitHub issues, but the core should not require GitHub auth.
+Maintainers may eventually want reviewed drafts to become GitHub issues, but the core should not require GitHub auth.
 
 Acceptance criteria:
 
 - Default behavior remains file-only.
-- Exported issue drafts are reviewable Markdown.
-- Any future GitHub API integration is optional and never sends private analytics.
+- Any GitHub API integration is optional and never sends private analytics.
+- Issue creation is explicit and can be disabled in local policy.
 
 ## Completed Recently
 
@@ -57,3 +57,7 @@ Implemented shared action candidates and `ogl candidates` so the planner can sel
 ### Add Outcome Memory Loop
 
 Implemented `ogl complete`, `ogl outcome`, and local action-memory ranking adjustments so completed work can influence future candidates without sending data to a hosted service.
+
+### Add Local Issue Draft Export
+
+Implemented `ogl issue-drafts` so the latest daily plan can become a reviewable Markdown GitHub issue draft without requiring GitHub auth or posting anything automatically.

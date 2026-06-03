@@ -15,12 +15,12 @@
 - Local privacy scan.
 - Runnable sample workspaces.
 - Local action memory with completed-action outcomes.
+- Local GitHub issue draft export as Markdown.
+- Configurable stale-work windows.
 
 ## 0.2
 
-- Optional GitHub issue draft export as Markdown.
 - More decision trace detail for competing candidates.
-- Configurable stale-work windows.
 - More sample data shapes for package pages and release notes.
 
 ## 0.3

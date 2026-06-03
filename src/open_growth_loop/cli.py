@@ -10,6 +10,7 @@ from .config import GrowthConfig, load_config
 from .events import import_aggregate_events
 from .experiments import render_reviews_markdown, review_experiments, ship_experiment, track_plan
 from .io_utils import dated_report_path, first_existing, read_json, write_json_report, write_text_report
+from .issue_drafts import issue_title, write_issue_draft
 from .memory import record_completion, record_outcome
 from .planner import DailyPlan, build_daily_plan, default_data_paths, default_memory_path, write_plan_reports
 from .privacy import render_privacy_scan_markdown, scan_privacy
@@ -122,6 +123,10 @@ def main() -> None:
     add_workspace_argument(prompt)
     prompt.add_argument("--plan-json", default="", help="Plan JSON. Defaults to outbox/plans/latest-plan.json.")
 
+    issue_drafts = subparsers.add_parser("issue-drafts", help="Write a local GitHub issue draft from the latest plan.")
+    add_workspace_argument(issue_drafts)
+    issue_drafts.add_argument("--plan-json", default="", help="Plan JSON. Defaults to outbox/plans/latest-plan.json.")
+
     args = parser.parse_args()
     workspace = Path(args.workspace or args.global_workspace or ".").resolve()
     try:
@@ -160,6 +165,8 @@ def main() -> None:
         run_privacy_scan(args, workspace)
     elif args.command == "prompt":
         run_prompt(args, workspace)
+    elif args.command == "issue-drafts":
+        run_issue_drafts(args, workspace)
 
 
 def add_workspace_argument(parser: argparse.ArgumentParser) -> None:
@@ -437,3 +444,21 @@ def run_prompt(args: argparse.Namespace, workspace: Path) -> None:
     out_path = workspace / "outbox" / "prompts" / "latest-prompt.md"
     latest_path, history_path = write_text_report(out_path, prompt)
     print(json.dumps({"prompt": str(latest_path), "prompt_history": str(history_path)}, indent=2))
+
+
+def run_issue_drafts(args: argparse.Namespace, workspace: Path) -> None:
+    plan_json = Path(args.plan_json) if args.plan_json else workspace / "outbox" / "plans" / "latest-plan.json"
+    if not plan_json.exists():
+        raise SystemExit(f"Plan JSON not found: {plan_json}. Run `ogl plan --workspace {workspace}` first.")
+    plan = DailyPlan(**read_json(plan_json))
+    latest_path, history_path = write_issue_draft(plan, workspace / "outbox" / "issues")
+    print(
+        json.dumps(
+            {
+                "title": issue_title(plan),
+                "issue_draft": str(latest_path),
+                "issue_draft_history": str(history_path),
+            },
+            indent=2,
+        )
+    )

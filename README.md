@@ -38,6 +38,7 @@ python -m open_growth_loop --workspace . validate
 python -m open_growth_loop --workspace . candidates
 python -m open_growth_loop --workspace . plan
 python -m open_growth_loop --workspace . prompt
+python -m open_growth_loop --workspace . issue-drafts
 ```
 
 On macOS/Linux, activate the environment with `. .venv/bin/activate` before running the install and CLI commands.
@@ -72,6 +73,7 @@ Example plan output:
 - `ogl weekly-review` summarizes operating state across inventory and experiments.
 - `ogl privacy-scan` checks local files for private-data leakage risks.
 - `ogl prompt` writes a Codex-ready prompt for the next focused change.
+- `ogl issue-drafts` writes a reviewable local Markdown issue draft from the latest plan.
 
 ## Inputs And Outputs
 
@@ -90,6 +92,7 @@ It writes reviewable Markdown/JSON files under `outbox/`:
 - an experiment review
 - local action memory for completed work and outcomes
 - a focused prompt for Codex or another coding assistant
+- a local GitHub issue draft that can be reviewed before posting
 
 Each report keeps the familiar `latest-*` path for daily use and also writes a dated copy under `history/` so maintainers can compare decisions over time.
 
@@ -216,6 +219,12 @@ Generate a Codex-ready maintenance prompt from the latest plan:
 ogl prompt --workspace .
 ```
 
+Write a reviewable local GitHub issue draft from the latest plan:
+
+```bash
+ogl issue-drafts --workspace .
+```
+
 Run tests:
 
 ```bash
@@ -284,6 +293,7 @@ Recommended maintainer workflow:
 ogl import-events --source path\to\aggregate-events.csv --output data\events.csv
 ogl query-backlog --workspace .
 ogl plan --workspace .
+ogl issue-drafts --workspace .
 ogl track-experiment --workspace .
 ogl complete --workspace .
 ogl ship --workspace . --asset /docs/setup --artifact https://example.org/docs/setup

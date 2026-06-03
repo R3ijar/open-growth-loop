@@ -4,6 +4,14 @@ All notable changes to Open Growth Loop are documented here.
 
 ## Unreleased
 
+### Added
+
+- Local `ogl issue-drafts` command that turns the latest plan into a reviewable Markdown GitHub issue draft without requiring GitHub auth.
+
+### Fixed
+
+- Aligned package `__version__` metadata with the published `0.1.1` release.
+
 ## 0.1.1 - 2026-06-03
 
 ### Added

@@ -52,6 +52,14 @@ ogl prompt --workspace .
 
 Use the generated prompt with Codex to make one focused, reviewable change.
 
+To turn the same plan into a reviewable local GitHub issue draft:
+
+```bash
+ogl issue-drafts --workspace .
+```
+
+This writes Markdown under `outbox/issues/`. Review the draft before posting publicly.
+
 ## 6. Record The Shipped Artifact
 
 ```bash
