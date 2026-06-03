@@ -15,6 +15,7 @@ python -m open_growth_loop --workspace . candidates
 python -m open_growth_loop --workspace . plan
 python -m open_growth_loop --workspace . issue-drafts
 python -m open_growth_loop --workspace . release-brief
+python -m open_growth_loop --workspace . report-index
 python -m open_growth_loop --workspace . privacy-scan
 ```
 
@@ -24,6 +25,7 @@ This produces local reports under `outbox/`:
 - one daily plan with Decision Trace v2 and Data Freshness
 - a local GitHub issue draft for review before posting
 - a release brief that checks validation, freshness, privacy, changelog state, example coverage, and claim guardrails
+- a report index that links generated outbox reports in a recommended reading order
 - a privacy scan before public docs or examples are shared
 
 ## What We Dogfood
@@ -34,6 +36,7 @@ Open Growth Loop currently dogfoods these maintainer workflows:
 - **Release evidence:** staged work is verified before being treated as shipped.
 - **Example coverage:** each runnable sample workspace validates and selects the documented plan.
 - **Release readiness:** `ogl release-brief` summarizes whether the repo is ready for a release or public application update.
+- **Report review:** `ogl report-index` gives maintainers one local front page for the generated Markdown outputs.
 - **Claim discipline:** release briefs explicitly remind maintainers not to claim stars, downloads, adoption, or ecosystem impact unless verified.
 - **Privacy boundaries:** public examples use synthetic aggregate data and the privacy scan runs before sharing.
 

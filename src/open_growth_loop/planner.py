@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Mapping
@@ -8,6 +9,7 @@ from .candidates import Candidate, build_candidates, candidate_brief, release_ev
 from .events import EventRollup
 from .freshness import FreshnessReport, build_freshness_report
 from .io_utils import first_existing, write_json_report, write_text_report
+from .reporting import collapsible_section, compact_join, key_value_table, markdown_table, status_label, task_list
 
 
 @dataclass(frozen=True)
@@ -138,76 +140,144 @@ def _plan_from_candidate(candidate: Candidate, alternatives: list[Candidate], th
 
 def render_plan_markdown(plan: DailyPlan) -> str:
     decision = plan.evidence.get("decision") if isinstance(plan.evidence, dict) else None
+    freshness = plan.evidence.get("freshness") if isinstance(plan.evidence, dict) else None
+    selected_rule = decision.get("selected_rule", "unknown") if isinstance(decision, dict) else "unknown"
+    freshness_status = status_label(freshness.get("ok", "")) if isinstance(freshness, dict) else "UNKNOWN"
     lines = [
         "# Daily Growth Loop Plan",
         "",
-        f"**Action:** {plan.action_type}",
-        f"**Asset:** {plan.asset or 'none'}",
-        f"**Confidence:** {plan.confidence}",
+        "## Summary",
         "",
-        f"## {plan.title}",
+        *key_value_table(
+            [
+                ("Recommended action", plan.action_type),
+                ("Asset", plan.asset or "none"),
+                ("Confidence", plan.confidence),
+                ("Selected rule", selected_rule),
+                ("Data freshness", freshness_status),
+            ]
+        ),
         "",
-        plan.reason,
+        "## Recommended Action",
         "",
-        "## Next Steps",
+        f"**{plan.title}**",
+        "",
+        plan.reason.strip() or "Open Growth Loop selected this as the next conservative maintainer action.",
+        "",
+        "## Action Checklist",
         "",
     ]
-    lines.extend(f"- {step}" for step in plan.next_steps)
+    lines.extend(task_list(plan.next_steps, "- No next steps were generated. Review the local evidence before acting."))
     if isinstance(decision, dict):
         lines.extend(
             [
                 "",
-                "## Decision",
+                "## Decision Trace",
                 "",
-                f"- Selected rule: {decision.get('selected_rule', 'unknown')}",
-                f"- Why: {decision.get('why_selected', '')}",
+                "### Candidate Comparison",
+                "",
             ]
         )
-        skipped = decision.get("skipped_rules", [])
-        if skipped:
-            lines.extend(["", "### Rules Skipped", ""])
-            lines.extend(f"- {item}" for item in skipped)
-        alternatives = decision.get("alternatives", [])
-        if alternatives:
-            lines.extend(["", "### Alternatives", ""])
-            for item in alternatives:
-                if isinstance(item, dict):
-                    lines.append(
-                        f"- {item.get('action_type', 'unknown')} for {item.get('asset') or 'none'} "
-                        f"(source={item.get('source', 'unknown')}, score={item.get('score', 'unknown')})"
-                    )
+        comparison_rows: list[tuple[object, ...]] = []
+        winner = decision.get("winner")
+        if isinstance(winner, dict):
+            comparison_rows.append(
+                (
+                    winner.get("rank", 1),
+                    "selected",
+                    winner.get("action_type", plan.action_type),
+                    winner.get("asset") or plan.asset or "none",
+                    winner.get("source", selected_rule),
+                    winner.get("confidence", plan.confidence),
+                    winner.get("score", "n/a"),
+                    winner.get("selection_reason", decision.get("why_selected", "")),
+                )
+            )
         comparison = decision.get("comparison", [])
-        if comparison:
-            lines.extend(["", "### Candidate Comparison", ""])
+        if isinstance(comparison, list):
             for item in comparison:
                 if not isinstance(item, dict):
                     continue
-                reasons = item.get("lost_because", [])
-                reason_text = "; ".join(str(reason) for reason in reasons) if isinstance(reasons, list) else str(reasons)
-                lines.append(
-                    f"- #{item.get('rank', '?')} {item.get('action_type', 'unknown')} for {item.get('asset') or 'none'} "
-                    f"lost because: {reason_text}"
+                comparison_rows.append(
+                    (
+                        item.get("rank", "?"),
+                        "alternative",
+                        item.get("action_type", "unknown"),
+                        item.get("asset") or "none",
+                        item.get("source", "unknown"),
+                        item.get("confidence", "unknown"),
+                        item.get("score", "n/a"),
+                        "lost because: "
+                        + compact_join(
+                            item.get("lost_because", [])
+                            if isinstance(item.get("lost_because"), list)
+                            else [item.get("lost_because", "")]
+                        ),
+                    )
                 )
+        if comparison_rows:
+            lines.extend(
+                markdown_table(
+                    ["Rank", "Role", "Action", "Asset", "Rule", "Confidence", "Score", "Decision note"],
+                    comparison_rows,
+                )
+            )
+        else:
+            lines.append(decision.get("why_selected", "") or "No candidate comparison was available.")
+
+        skipped = decision.get("skipped_rules", [])
+        if skipped:
+            lines.extend(["", "### Skipped Higher-Priority Rules", ""])
+            lines.extend(f"- {item}" for item in skipped)
+
         audit_notes = decision.get("audit_notes", [])
         if audit_notes:
-            lines.extend(["", "### Audit Notes", ""])
-            lines.extend(f"- {item}" for item in audit_notes if str(item).strip())
-    freshness = plan.evidence.get("freshness") if isinstance(plan.evidence, dict) else None
+            lines.extend(
+                [
+                    "",
+                    "### Audit Notes",
+                    "",
+                    *collapsible_section("Audit notes", [f"- {item}" for item in audit_notes if str(item).strip()]),
+                ]
+            )
     if isinstance(freshness, dict):
         lines.extend(["", "## Data Freshness", ""])
-        lines.append(f"Status: {'ok' if freshness.get('ok') else 'warnings'}")
+        checks = freshness.get("checks", [])
+        if isinstance(checks, list) and checks:
+            lines.extend(
+                markdown_table(
+                    ["Input", "Status", "Source", "Latest", "Age", "Reason"],
+                    [
+                        (
+                            check.get("name", "unknown"),
+                            status_label(check.get("status", "")),
+                            check.get("source", ""),
+                            check.get("latest_date", "") or "n/a",
+                            "n/a" if check.get("age_days") is None else f"{check.get('age_days')} days",
+                            check.get("reason", ""),
+                        )
+                        for check in checks
+                        if isinstance(check, dict)
+                    ],
+                )
+            )
+        else:
+            lines.append(f"Status: {'ok' if freshness.get('ok') else 'warnings'}")
         warnings = freshness.get("warnings", [])
         if warnings:
-            lines.append("")
+            lines.extend(["", "### Freshness Warnings", ""])
             lines.extend(f"- {item}" for item in warnings if str(item).strip())
         else:
-            lines.append("")
-            lines.append("- No stale data warnings for the inputs used by this plan.")
-    lines.extend(["", "## Evidence", "", "```json"])
-    import json
-
-    lines.append(json.dumps(plan.evidence, indent=2, sort_keys=True))
-    lines.append("```")
+            lines.extend(["", "- No stale data warnings for the inputs used by this plan."])
+    lines.extend(
+        [
+            "",
+            *collapsible_section(
+                "Raw evidence JSON",
+                ["```json", json.dumps(plan.evidence, indent=2, sort_keys=True), "```"],
+            ),
+        ]
+    )
     lines.append("")
     return "\n".join(lines)
 

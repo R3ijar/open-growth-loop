@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Mapping
 
 from .io_utils import read_csv_rows, write_json_report, write_text_report
+from .reporting import key_value_table, markdown_table, status_label
 
 
 DATE_FIELDS = {
@@ -61,20 +62,40 @@ def render_freshness_markdown(report: FreshnessReport) -> str:
     lines = [
         "# Data Freshness",
         "",
-        f"Checked at: {report.checked_at}",
-        f"Warning window: {report.warn_after_days} days",
-        f"Status: {'ok' if report.ok else 'warnings'}",
+        "## Summary",
         "",
-        "## Checks",
+        *key_value_table(
+            [
+                ("Status", status_label(report.ok)),
+                ("Checked at", report.checked_at),
+                ("Warning window", f"{report.warn_after_days} days"),
+                ("Inputs checked", len(report.checks)),
+                ("Warnings", len(report.warnings)),
+            ]
+        ),
         "",
+        "## Input Checks",
+        "",
+        *markdown_table(
+            ["Input", "Status", "Source", "Latest", "Age", "Reason"],
+            [
+                (
+                    check.name,
+                    status_label(check.status),
+                    check.source,
+                    check.latest_date or "n/a",
+                    "n/a" if check.age_days is None else f"{check.age_days} days",
+                    check.reason,
+                )
+                for check in report.checks
+            ],
+        ),
     ]
-    for check in report.checks:
-        age = "" if check.age_days is None else f", age={check.age_days} days"
-        latest = "" if not check.latest_date else f", latest={check.latest_date}"
-        lines.append(f"- {check.name}: {check.status} ({check.source}{latest}{age}) - {check.reason}")
     if report.warnings:
         lines.extend(["", "## Warnings", ""])
         lines.extend(f"- {warning}" for warning in report.warnings)
+    else:
+        lines.extend(["", "## Warnings", "", "No stale-data warnings were found for the configured inputs."])
     lines.append("")
     return "\n".join(lines)
 

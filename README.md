@@ -5,11 +5,11 @@
 [![CI](https://github.com/R3ijar/open-growth-loop/actions/workflows/ci.yml/badge.svg)](https://github.com/R3ijar/open-growth-loop/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB.svg)](pyproject.toml)
-[![Release: v0.1.3](https://img.shields.io/badge/release-v0.1.3-0F766E.svg)](https://github.com/R3ijar/open-growth-loop/releases/tag/v0.1.3)
+[![Release: v0.1.4](https://img.shields.io/badge/release-v0.1.4-0F766E.svg)](https://github.com/R3ijar/open-growth-loop/releases/tag/v0.1.4)
 
 Turn Search Console CSVs, aggregate event CSVs, content inventory, and experiment logs into **one conservative daily maintainer action** without sending project data to a hosted service.
 
-[Quickstart](#60-second-quickstart) · [Runnable examples](examples/README.md) · [Dogfooding](docs/DOGFOODING.md) · [Release readiness](docs/RELEASE_READINESS.md) · [Changelog](CHANGELOG.md)
+[Quickstart](#60-second-quickstart) | [Runnable examples](examples/README.md) | [Dogfooding](docs/DOGFOODING.md) | [Release readiness](docs/RELEASE_READINESS.md) | [Changelog](CHANGELOG.md)
 
 ![Open Growth Loop maintainer workflow](docs/assets/open-growth-loop-system-v013.svg)
 
@@ -17,10 +17,10 @@ Turn Search Console CSVs, aggregate event CSVs, content inventory, and experimen
 
 | Signal | Current state |
 | --- | --- |
-| Maintainer workflow | validation -> freshness -> candidates -> plan -> issue/prompt -> release brief -> outcome |
+| Maintainer workflow | validation -> freshness -> candidates -> plan -> issue/prompt -> release brief -> report index -> outcome |
 | Runnable examples | 5 synthetic workspaces covering release evidence, funnel dropoff, aliased exports, package pages, and release notes |
 | Release readiness | `ogl release-brief` checks validation, freshness, privacy, examples, changelog, README coverage, and claim guardrails |
-| Verification | 53 tests, CI passing, privacy scan clean |
+| Verification | 55 tests, CI passing, privacy scan clean |
 | Privacy model | local CSVs only; aggregate events only; no hosted analytics service |
 
 ## What It Produces
@@ -29,6 +29,7 @@ After one local run, a maintainer has reviewable files under `outbox/`:
 
 | Output | What it is for |
 | --- | --- |
+| `outbox/index.md` | Local report front page linking generated outputs with status, timestamps, and reading order. |
 | `latest-candidates` | See every action the planner considered and why it ranked lower or higher. |
 | `latest-plan` | One conservative daily action with Decision Trace v2 and Data Freshness. |
 | `latest-prompt` | A focused Codex-ready prompt for the next reviewable change. |
@@ -38,8 +39,10 @@ After one local run, a maintainer has reviewable files under `outbox/`:
 
 The tool is intentionally generic. It does not know about any one product, private app, customer database, or specialized domain. It is useful for projects that maintain docs, examples, changelogs, educational pages, package pages, or project websites and want to decide what to improve next from public/search signals and privacy-safe event aggregates.
 
-## v0.1.3 Highlights
+## v0.1.4 Highlights
 
+- **Report Design v1:** generated Markdown reports now use scorecards, ranking tables, freshness tables, release-readiness tables, and collapsible audit evidence.
+- **Report Index:** `ogl report-index` writes a local `outbox/index.md` front page so maintainers can review generated reports in the right order.
 - **Release Briefs:** `ogl release-brief` summarizes validation, freshness, privacy, latest plan, example coverage, changelog state, README coverage, and claim guardrails.
 - **Dogfooding Docs:** Open Growth Loop now documents how it uses its own loop to maintain this repository.
 - **Package Page And Release Note Examples:** runnable synthetic examples show the same planner rules on additional OSS maintainer surfaces.
@@ -86,6 +89,7 @@ python -m open_growth_loop --workspace . plan
 python -m open_growth_loop --workspace . prompt
 python -m open_growth_loop --workspace . issue-drafts
 python -m open_growth_loop --workspace . release-brief
+python -m open_growth_loop --workspace . report-index
 ```
 
 On macOS/Linux, activate the environment with `. .venv/bin/activate` before running the install and CLI commands.
@@ -142,6 +146,7 @@ python -m open_growth_loop --workspace examples/package-page-cta prompt
 - `ogl prompt` writes a Codex-ready prompt for the next focused change.
 - `ogl issue-drafts` writes a reviewable local Markdown issue draft from the latest plan.
 - `ogl release-brief` writes a release-readiness brief with validation, freshness, privacy, examples, changelog, and claim guardrails.
+- `ogl report-index` writes a local front page for generated outbox reports.
 
 ## Inputs And Outputs
 
@@ -155,6 +160,7 @@ Open Growth Loop reads:
 
 It writes reviewable Markdown/JSON files under `outbox/`:
 
+- a local report index with status, timestamps, links, and reading order
 - a ranked query backlog
 - a data freshness report
 - one daily action plan
@@ -308,6 +314,12 @@ Write a release-readiness brief:
 ogl release-brief --workspace .
 ```
 
+Write a local report index:
+
+```bash
+ogl report-index --workspace .
+```
+
 Run tests:
 
 ```bash
@@ -380,6 +392,7 @@ ogl query-backlog --workspace .
 ogl plan --workspace .
 ogl issue-drafts --workspace .
 ogl release-brief --workspace .
+ogl report-index --workspace .
 ogl track-experiment --workspace .
 ogl complete --workspace .
 ogl ship --workspace . --asset /docs/setup --artifact https://example.org/docs/setup
@@ -416,7 +429,7 @@ Generated plans also include a Data Freshness block. Sample `.example.csv` files
 
 ## Project Status
 
-Current release: v0.1.3.
+Current release: v0.1.4.
 
 This is an early open-source extraction of a local growth-operations loop. It is ready for small CSV-driven maintainer workflows and intended to grow through issues, examples, and contributor feedback.
 

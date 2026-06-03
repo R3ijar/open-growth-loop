@@ -1,6 +1,6 @@
 <svg width="960" height="540" viewBox="0 0 960 540" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
   <title id="title">Open Growth Loop maintainer workflow</title>
-  <desc id="desc">A polished system map showing local CSV inputs flowing through a conservative planner engine into daily plans, issue drafts, Codex prompts, release briefs, and outcome memory.</desc>
+  <desc id="desc">A polished system map showing local CSV inputs flowing through a conservative planner engine into daily plans, issue drafts, Codex prompts, release briefs, report indexes, and outcome memory.</desc>
   <rect width="960" height="540" rx="8" fill="#08111F"/>
   <path d="M0 0H960V540H0V0Z" fill="url(#grid)" opacity="0.24"/>
   <rect x="30" y="30" width="900" height="480" rx="8" fill="#0B1220" stroke="#243041"/>
@@ -9,7 +9,7 @@
   <text x="54" y="104" fill="#94A3B8" font-family="Arial, sans-serif" font-size="15">Local-first maintainer loop for one evidence-based docs, package, or release action per day.</text>
 
   <rect x="682" y="54" width="95" height="30" rx="6" fill="#052E2B" stroke="#2DD4BF"/>
-  <text x="706" y="74" fill="#A7F3D0" font-family="Arial, sans-serif" font-size="12" font-weight="700">53 tests</text>
+  <text x="706" y="74" fill="#A7F3D0" font-family="Arial, sans-serif" font-size="12" font-weight="700">55 tests</text>
   <rect x="790" y="54" width="118" height="30" rx="6" fill="#111827" stroke="#334155"/>
   <text x="812" y="74" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="12" font-weight="700">Apache-2.0</text>
 
@@ -62,7 +62,7 @@
     <rect x="674" y="336" width="224" height="44" rx="7" fill="#134E4A" stroke="#2DD4BF"/>
     <text x="694" y="364" fill="#CCFBF1" font-weight="700">Release brief</text>
     <rect x="674" y="392" width="224" height="44" rx="7" fill="#111827" stroke="#475569"/>
-    <text x="694" y="420" fill="#E2E8F0" font-weight="700">Recorded outcome</text>
+    <text x="694" y="420" fill="#E2E8F0" font-weight="700">Report index</text>
   </g>
 
   <rect x="54" y="446" width="844" height="40" rx="7" fill="#111827" stroke="#334155"/>

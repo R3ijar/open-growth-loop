@@ -4,8 +4,12 @@ All notable changes to Open Growth Loop are documented here.
 
 ## Unreleased
 
+## 0.1.4 - 2026-06-03
+
 ### Added
 
+- Report Design v1 for generated Markdown outputs, including reader-first scorecards, ranking tables, freshness tables, release-readiness tables, and collapsible plan audit evidence.
+- `ogl report-index` command that writes a local `outbox/index.md` front page linking generated reports with status, timestamps, and recommended reading order.
 - README landing-page polish with a stronger first-screen message, maintainer workflow visual, release badge, at-a-glance project signals, and clearer output map.
 
 ### Fixed

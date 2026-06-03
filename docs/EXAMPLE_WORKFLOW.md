@@ -160,7 +160,22 @@ outbox/release-brief/history/YYYY-MM-DD-release-brief.json
 
 The release brief summarizes validation, freshness, privacy scan status, latest plan, example coverage, changelog state, README planner coverage, and manual claim guardrails. It is useful before tagging releases, posting issue drafts, or updating public application text.
 
-## 7. Track, Ship, And Review Later
+## 7. Build The Local Report Index
+
+```bash
+python -m open_growth_loop --workspace . report-index
+```
+
+This writes:
+
+```text
+outbox/index.md
+outbox/history/YYYY-MM-DD-index.md
+```
+
+The index links the generated plan, candidates, freshness report, query backlog, issue draft, prompt, release brief, weekly review, experiment review, and privacy scan when those files exist. It gives maintainers one local front page for reviewing the loop output.
+
+## 8. Track, Ship, And Review Later
 
 After making the public change, record the baseline:
 

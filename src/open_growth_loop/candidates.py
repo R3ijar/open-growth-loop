@@ -7,6 +7,7 @@ from typing import Iterable, Mapping
 from .events import EventRollup, read_event_rollups
 from .inventory import ContentItem, read_inventory
 from .memory import ActionMemoryRecord, read_action_memory
+from .reporting import compact_join, key_value_table, markdown_table
 from .search import SearchRow, rank_search_opportunities, read_search_rows
 
 
@@ -73,28 +74,70 @@ def render_candidates_markdown(candidates: list[Candidate]) -> str:
         lines.append("No candidates met the current rules.")
         return "\n".join(lines) + "\n"
 
+    selected = candidates[0]
+    blocked = sum(1 for candidate in candidates if candidate.blocked_by)
+    lines.extend(
+        [
+            "## Summary",
+            "",
+            *key_value_table(
+                [
+                    ("Candidates reviewed", len(candidates)),
+                    ("Selected candidate", selected.title),
+                    ("Blocked or cooled", blocked),
+                ]
+            ),
+            "",
+            "## Ranking",
+            "",
+            *markdown_table(
+                ["Rank", "Action", "Asset", "Rule", "Confidence", "Priority", "Score", "Status"],
+                [
+                    (
+                        index,
+                        candidate.action_type,
+                        candidate.asset or "none",
+                        candidate.source,
+                        candidate.confidence,
+                        candidate.priority,
+                        f"{candidate.score:.3f}",
+                        "blocked" if candidate.blocked_by else "available",
+                    )
+                    for index, candidate in enumerate(candidates, start=1)
+                ],
+            ),
+            "",
+            "## Candidate Details",
+            "",
+        ]
+    )
+
     for index, candidate in enumerate(candidates, start=1):
         lines.extend(
             [
-                f"## {index}. {candidate.title}",
+                f"### {index}. {candidate.title}",
                 "",
-                f"- Action: {candidate.action_type}",
-                f"- Asset: {candidate.asset or 'none'}",
-                f"- Source: {candidate.source}",
-                f"- Confidence: {candidate.confidence}",
-                f"- Priority: {candidate.priority}",
-                f"- Score: {candidate.score:.3f}",
-                f"- Reason: {candidate.reason}",
+                *key_value_table(
+                    [
+                        ("Action", candidate.action_type),
+                        ("Asset", candidate.asset or "none"),
+                        ("Source", candidate.source),
+                        ("Confidence", candidate.confidence),
+                        ("Priority", candidate.priority),
+                        ("Score", f"{candidate.score:.3f}"),
+                        ("Reason", candidate.reason),
+                    ]
+                ),
                 "",
             ]
         )
         notes = _candidate_notes(candidate)
         if notes:
-            lines.extend(["Notes:"])
-            lines.extend(f"- {item}" for item in notes)
+            lines.extend(["Notes:", ""])
+            lines.append(compact_join(notes, limit=6))
             lines.append("")
         if candidate.blocked_by:
-            lines.extend(["Blocked by:"])
+            lines.extend(["Blocked by:", ""])
             lines.extend(f"- {item}" for item in candidate.blocked_by)
             lines.append("")
     return "\n".join(lines)

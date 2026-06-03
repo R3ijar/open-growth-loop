@@ -14,6 +14,7 @@ from .freshness import build_freshness_report
 from .io_utils import first_existing, read_json, today_iso, write_json_report, write_text_report
 from .planner import build_daily_plan, default_data_paths, default_memory_path
 from .privacy import scan_privacy
+from .reporting import key_value_table, markdown_table, status_label
 from .workspace import validate_workspace
 
 
@@ -176,25 +177,35 @@ def render_release_brief_markdown(brief: ReleaseBrief) -> str:
     lines = [
         "# Release Brief",
         "",
-        f"Generated at: {brief.generated_at}",
-        f"Project: {brief.project_name} {brief.version}",
-        f"Status: {'ready with manual review' if brief.ready else 'blocked'}",
-        "",
         "## Summary",
         "",
-        f"- Workspace validation: {'ok' if brief.summary['validation_ok'] else 'errors'}",
-        f"- Data freshness: {'ok' if brief.summary['freshness_ok'] else 'warnings'}",
-        f"- Privacy scan: {'ok' if brief.summary['privacy_ok'] else 'findings'}",
-        f"- Example workspaces: {brief.summary['examples_checked']} checked, {'ok' if brief.summary['examples_ok'] else 'needs attention'}",
-        "- Manual review: required before public release or application claims",
+        *key_value_table(
+            [
+                ("Project", f"{brief.project_name} {brief.version}"),
+                ("Generated at", brief.generated_at),
+                ("Release status", "ready with manual review" if brief.ready else "blocked"),
+                ("Workspace validation", status_label(brief.summary["validation_ok"])),
+                ("Data freshness", status_label(brief.summary["freshness_ok"])),
+                ("Privacy scan", status_label(brief.summary["privacy_ok"])),
+                (
+                    "Example workspaces",
+                    f"{brief.summary['examples_checked']} checked, {status_label(brief.summary['examples_ok'])}",
+                ),
+                ("Manual review", "required before public release or application claims"),
+            ]
+        ),
         "",
         "## Latest Daily Plan",
         "",
-        f"- Action: {brief.latest_plan.get('action_type') or 'none'}",
-        f"- Asset: {brief.latest_plan.get('asset') or 'none'}",
-        f"- Selected rule: {brief.latest_plan.get('selected_rule') or 'unknown'}",
-        f"- Confidence: {brief.latest_plan.get('confidence') or 'unknown'}",
-        f"- Reason: {brief.latest_plan.get('reason') or 'not available'}",
+        *key_value_table(
+            [
+                ("Action", brief.latest_plan.get("action_type") or "none"),
+                ("Asset", brief.latest_plan.get("asset") or "none"),
+                ("Selected rule", brief.latest_plan.get("selected_rule") or "unknown"),
+                ("Confidence", brief.latest_plan.get("confidence") or "unknown"),
+                ("Reason", brief.latest_plan.get("reason") or "not available"),
+            ]
+        ),
         "",
         "## Example Coverage",
         "",
@@ -202,21 +213,36 @@ def render_release_brief_markdown(brief: ReleaseBrief) -> str:
     if not brief.examples:
         lines.append("No runnable example workspaces found.")
     else:
-        for example in brief.examples:
-            state = "ok" if example.ok else "needs attention"
-            lines.append(
-                f"- {example.name}: {state}; {example.action_type or 'none'} for {example.asset or 'none'} "
-                f"(rule={example.selected_rule or 'unknown'})"
+        lines.extend(
+            markdown_table(
+                ["Example", "Status", "Validation", "Action", "Asset", "Rule", "Detail"],
+                [
+                    (
+                        example.name,
+                        status_label(example.ok),
+                        status_label(example.validation_ok),
+                        example.action_type or "none",
+                        example.asset or "none",
+                        example.selected_rule or "unknown",
+                        example.detail,
+                    )
+                    for example in brief.examples
+                ],
             )
+        )
 
     lines.extend(
         [
             "",
             "## Changelog",
             "",
-            f"- Release notes: {'present' if brief.changelog.release_notes_present else 'missing'}",
-            f"- Current version documented: {'yes' if brief.changelog.current_version_documented else 'no'}",
-            f"- Detail: {brief.changelog.detail}",
+            *key_value_table(
+                [
+                    ("Release notes", "present" if brief.changelog.release_notes_present else "missing"),
+                    ("Current version documented", "yes" if brief.changelog.current_version_documented else "no"),
+                    ("Detail", brief.changelog.detail),
+                ]
+            ),
         ]
     )
     if brief.changelog.release_note_items:
@@ -224,10 +250,12 @@ def render_release_brief_markdown(brief: ReleaseBrief) -> str:
         lines.extend(f"- {item}" for item in brief.changelog.release_note_items)
 
     lines.extend(["", "## Release Checklist", ""])
-    for item in brief.checklist:
-        marker = "x" if item.status == "pass" else " "
-        suffix = "" if item.status == "pass" else f" [{item.status}]"
-        lines.append(f"- [{marker}] {item.name}{suffix}: {item.detail}")
+    lines.extend(
+        markdown_table(
+            ["Check", "Status", "Detail"],
+            [(item.name, status_label(item.status), item.detail) for item in brief.checklist],
+        )
+    )
 
     lines.extend(
         [

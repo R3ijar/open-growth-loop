@@ -103,7 +103,15 @@ ogl release-brief --workspace .
 
 Run this before tagging a release, updating public application text, or asking Codex to help with release notes. The brief summarizes validation, freshness, privacy scan status, latest plan, example coverage, changelog state, README coverage, and manual claim guardrails.
 
-## 11. Review Later
+## 11. Build The Report Index
+
+```bash
+ogl report-index --workspace .
+```
+
+Use this after generating reports. It writes `outbox/index.md`, a local front page that links available outputs and recommends a review order.
+
+## 12. Review Later
 
 ```bash
 ogl review-experiments --workspace .

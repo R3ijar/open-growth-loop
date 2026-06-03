@@ -6,6 +6,7 @@ from typing import Iterable
 from .events import PRIVATE_COLUMN_HINTS
 from .io_utils import write_text_report
 from .planner import DailyPlan
+from .reporting import key_value_table
 
 
 PRIVATE_EVIDENCE_HINTS = PRIVATE_COLUMN_HINTS | {
@@ -38,6 +39,17 @@ def render_issue_draft(plan: DailyPlan) -> str:
         "## Recommended Title",
         "",
         title,
+        "",
+        "## Draft Snapshot",
+        "",
+        *key_value_table(
+            [
+                ("Action", plan.action_type),
+                ("Asset", plan.asset or "none"),
+                ("Confidence", plan.confidence),
+                ("Review state", "local draft only"),
+            ]
+        ),
         "",
         "## Issue Body",
         "",

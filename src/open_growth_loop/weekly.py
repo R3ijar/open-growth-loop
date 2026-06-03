@@ -8,6 +8,7 @@ from typing import Mapping
 
 from .inventory import read_inventory
 from .io_utils import read_csv_rows, today_iso
+from .reporting import key_value_table, markdown_table
 
 
 @dataclass(frozen=True)
@@ -81,24 +82,35 @@ def render_weekly_review(review: WeeklyReview) -> str:
     lines = [
         "# Weekly Growth Loop Review",
         "",
-        f"Generated: {review.generated_on}",
+        "## Summary",
         "",
-        "## Inventory",
+        *key_value_table(
+            [
+                ("Generated", review.generated_on),
+                ("Staged assets", len(review.staged_assets)),
+                ("Waiting for artifact", len(review.waiting_for_artifact)),
+                ("Ready for review", len(review.ready_for_review)),
+                ("Waiting for more data", len(review.waiting_for_data)),
+                ("Stale work", len(review.stale_work)),
+            ]
+        ),
+        "",
+        "## Inventory State",
         "",
     ]
-    lines.extend(_count_lines(review.inventory_counts))
-    lines.extend(["", "## Experiments", ""])
-    lines.extend(_count_lines(review.experiment_counts))
+    lines.extend(_count_table(review.inventory_counts))
+    lines.extend(["", "## Experiment State", ""])
+    lines.extend(_count_table(review.experiment_counts))
     lines.extend(["", "## Staged Assets", ""])
     lines.extend(_list_lines(review.staged_assets, "No staged assets."))
     lines.extend(["", "## Waiting For Artifact", ""])
-    lines.extend(_experiment_lines(review.waiting_for_artifact, "No experiments are waiting for artifact evidence."))
+    lines.extend(_experiment_table(review.waiting_for_artifact, "No experiments are waiting for artifact evidence."))
     lines.extend(["", "## Ready For Review", ""])
-    lines.extend(_experiment_lines(review.ready_for_review, "No shipped experiments are ready for review."))
+    lines.extend(_experiment_table(review.ready_for_review, "No shipped experiments are ready for review."))
     lines.extend(["", "## Waiting For More Data", ""])
-    lines.extend(_experiment_lines(review.waiting_for_data, "No shipped experiments are waiting for more data."))
+    lines.extend(_experiment_table(review.waiting_for_data, "No shipped experiments are waiting for more data."))
     lines.extend(["", "## Stale Work", ""])
-    lines.extend(_stale_lines(review.stale_work, "No stale work detected."))
+    lines.extend(_stale_table(review.stale_work, "No stale work detected."))
     lines.extend(["", "## Next Attention", ""])
     lines.extend(_list_lines(review.next_attention, "Generate the next plan."))
     return "\n".join(lines) + "\n"
@@ -140,6 +152,12 @@ def _count_lines(counts: dict[str, int]) -> list[str]:
     return [f"- {name}: {count}" for name, count in sorted(counts.items())]
 
 
+def _count_table(counts: dict[str, int]) -> list[str]:
+    if not counts:
+        return ["No rows found."]
+    return markdown_table(["State", "Count"], sorted(counts.items()))
+
+
 def _list_lines(items: list[str], empty: str) -> list[str]:
     if not items:
         return [empty]
@@ -160,6 +178,24 @@ def _experiment_lines(items: list[dict[str, str]], empty: str) -> list[str]:
     return lines
 
 
+def _experiment_table(items: list[dict[str, str]], empty: str) -> list[str]:
+    if not items:
+        return [empty]
+    return markdown_table(
+        ["ID", "Asset", "Status", "Review after", "Artifact"],
+        [
+            (
+                item.get("id") or "unknown",
+                item.get("asset") or "none",
+                item.get("status") or "unknown",
+                item.get("review_after") or "unset",
+                item.get("artifact") or "none",
+            )
+            for item in items
+        ],
+    )
+
+
 def _stale_lines(items: list[dict[str, str]], empty: str) -> list[str]:
     if not items:
         return [empty]
@@ -172,6 +208,24 @@ def _stale_lines(items: list[dict[str, str]], empty: str) -> list[str]:
         suffix = f", age_days={age}" if age else ""
         lines.append(f"- {label}: {asset} [{item.get('kind', 'stale')}] {reason}{suffix}")
     return lines
+
+
+def _stale_table(items: list[dict[str, str]], empty: str) -> list[str]:
+    if not items:
+        return [empty]
+    return markdown_table(
+        ["ID", "Asset", "Kind", "Age", "Reason"],
+        [
+            (
+                item.get("id") or "unknown",
+                item.get("asset") or "none",
+                item.get("kind") or "stale",
+                item.get("age_days") or "n/a",
+                item.get("reason") or "needs attention",
+            )
+            for item in items
+        ],
+    )
 
 
 def _stale_artifact_issue(row: Mapping[str, str], today: str, stale_planned_days: int) -> dict[str, str] | None:

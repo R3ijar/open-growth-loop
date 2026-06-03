@@ -39,23 +39,26 @@ The report can be `ready with manual review`. That means deterministic checks pa
 ```text
 # Release Brief
 
-Generated at: 2026-06-03
-Project: open-growth-loop 0.1.3
-Status: ready with manual review
-
 ## Summary
 
-- Workspace validation: ok
-- Data freshness: ok
-- Privacy scan: ok
-- Example workspaces: 5 checked, ok
-- Manual review: required before public release or application claims
+| Field | Value |
+| --- | --- |
+| Project | open-growth-loop 0.1.4 |
+| Generated at | 2026-06-03 |
+| Release status | ready with manual review |
+| Workspace validation | PASS |
+| Data freshness | PASS |
+| Privacy scan | PASS |
+| Example workspaces | 5 checked, PASS |
+| Manual review | required before public release or application claims |
 ```
 
 The final checklist includes a manual item:
 
 ```text
-- [ ] Adoption and impact claims reviewed [manual]: Do not claim stars, downloads, users, or ecosystem impact unless those metrics are public and verified.
+| Check | Status | Detail |
+| --- | --- | --- |
+| Adoption and impact claims reviewed | MANUAL | Do not claim stars, downloads, users, or ecosystem impact unless those metrics are public and verified. |
 ```
 
 That manual gate is intentional. Open Growth Loop should help maintainers move quickly without overstating impact.
