@@ -1,39 +1,46 @@
-<svg width="960" height="260" viewBox="0 0 960 260" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+<svg width="960" height="220" viewBox="0 0 960 220" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
   <title id="title">Open Growth Loop workflow</title>
   <desc id="desc">Local CSV inputs feed ranked candidates, one daily plan, a focused prompt, completed action recording, outcome recording, and local action memory.</desc>
-  <rect width="960" height="260" rx="16" fill="#0D1117"/>
-  <rect x="1" y="1" width="958" height="258" rx="15" stroke="#30363D" stroke-width="2"/>
+  <rect width="960" height="220" rx="16" fill="#0D1117"/>
+  <rect x="1" y="1" width="958" height="218" rx="15" stroke="#30363D" stroke-width="2"/>
   <defs>
-    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748B"/>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M 0 0 L 12 6 L 0 12 z" fill="#7DD3FC"/>
     </marker>
   </defs>
-  <text x="40" y="42" fill="#F8FAFC" font-family="Arial, sans-serif" font-size="22" font-weight="700">How the loop works</text>
-  <rect x="40" y="76" width="176" height="48" rx="8" fill="#111827" stroke="#334155"/>
-  <text x="64" y="105" fill="#E5E7EB" font-family="Arial, sans-serif" font-size="15">Search CSV</text>
-  <rect x="40" y="136" width="176" height="48" rx="8" fill="#111827" stroke="#334155"/>
-  <text x="64" y="165" fill="#E5E7EB" font-family="Arial, sans-serif" font-size="15">Aggregate events</text>
-  <rect x="40" y="196" width="176" height="48" rx="8" fill="#111827" stroke="#334155"/>
-  <text x="64" y="225" fill="#E5E7EB" font-family="Arial, sans-serif" font-size="15">Content inventory</text>
-  <rect x="282" y="136" width="160" height="48" rx="8" fill="#0B1220" stroke="#60A5FA"/>
-  <text x="318" y="165" fill="#DBEAFE" font-family="Arial, sans-serif" font-size="15" font-weight="700">ogl candidates</text>
-  <rect x="508" y="136" width="118" height="48" rx="8" fill="#0B1220" stroke="#60A5FA"/>
-  <text x="540" y="165" fill="#DBEAFE" font-family="Arial, sans-serif" font-size="15" font-weight="700">ogl plan</text>
-  <rect x="692" y="76" width="128" height="48" rx="8" fill="#111827" stroke="#34D399"/>
-  <text x="724" y="105" fill="#D1FAE5" font-family="Arial, sans-serif" font-size="15" font-weight="700">ogl prompt</text>
-  <rect x="692" y="136" width="128" height="48" rx="8" fill="#111827" stroke="#34D399"/>
-  <text x="716" y="165" fill="#D1FAE5" font-family="Arial, sans-serif" font-size="15" font-weight="700">ogl complete</text>
-  <rect x="692" y="196" width="128" height="48" rx="8" fill="#111827" stroke="#34D399"/>
-  <text x="720" y="225" fill="#D1FAE5" font-family="Arial, sans-serif" font-size="15" font-weight="700">ogl outcome</text>
-  <rect x="804" y="136" width="116" height="48" rx="8" fill="#172554" stroke="#93C5FD"/>
-  <text x="826" y="165" fill="#DBEAFE" font-family="Arial, sans-serif" font-size="15" font-weight="700">memory</text>
-  <path d="M 216 100 H 266 Q 282 100 282 116 V 145" stroke="#64748B" stroke-width="2" marker-end="url(#arrow)"/>
-  <path d="M 216 160 H 272" stroke="#64748B" stroke-width="2" marker-end="url(#arrow)"/>
-  <path d="M 216 220 H 266 Q 282 220 282 204 V 176" stroke="#64748B" stroke-width="2" marker-end="url(#arrow)"/>
-  <path d="M 442 160 H 498" stroke="#64748B" stroke-width="2" marker-end="url(#arrow)"/>
-  <path d="M 626 160 H 666 Q 682 160 682 144 V 108 H 682" stroke="#64748B" stroke-width="2" marker-end="url(#arrow)"/>
-  <path d="M 626 160 H 682" stroke="#64748B" stroke-width="2" marker-end="url(#arrow)"/>
-  <path d="M 756 184 V 188" stroke="#64748B" stroke-width="2" marker-end="url(#arrow)"/>
-  <path d="M 820 220 H 862 V 194" stroke="#64748B" stroke-width="2" marker-end="url(#arrow)"/>
-  <path d="M 804 160 H 646 Q 626 160 626 184 V 212 Q 626 232 606 232 H 362 Q 342 232 342 212 V 194" stroke="#64748B" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="40" y="38" width="156" height="104" rx="10" fill="#111827" stroke="#334155"/>
+  <text x="62" y="66" fill="#E0F2FE" font-family="Arial, sans-serif" font-size="13" font-weight="700">1. Local signals</text>
+  <text x="62" y="92" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="13">Search CSV</text>
+  <text x="62" y="113" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="13">Aggregate events</text>
+  <text x="62" y="134" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="13">Content inventory</text>
+
+  <rect x="230" y="38" width="156" height="104" rx="10" fill="#0B1220" stroke="#38BDF8"/>
+  <text x="252" y="66" fill="#E0F2FE" font-family="Arial, sans-serif" font-size="13" font-weight="700">2. Rank candidates</text>
+  <text x="252" y="94" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="13">release evidence</text>
+  <text x="252" y="115" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="13">funnel dropoffs</text>
+  <text x="252" y="136" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="13">search opportunities</text>
+
+  <rect x="420" y="38" width="156" height="104" rx="10" fill="#111827" stroke="#38BDF8"/>
+  <text x="442" y="66" fill="#E0F2FE" font-family="Arial, sans-serif" font-size="13" font-weight="700">3. Pick one plan</text>
+  <text x="442" y="94" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="13">one focused action</text>
+  <text x="442" y="115" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="13">decision evidence</text>
+  <text x="442" y="136" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="13">ranked alternatives</text>
+
+  <rect x="610" y="38" width="156" height="104" rx="10" fill="#0B1220" stroke="#34D399"/>
+  <text x="632" y="66" fill="#DCFCE7" font-family="Arial, sans-serif" font-size="13" font-weight="700">4. Do the work</text>
+  <text x="632" y="94" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="13">Codex prompt</text>
+  <text x="632" y="115" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="13">complete action</text>
+  <text x="632" y="136" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="13">record artifact</text>
+
+  <rect x="800" y="38" width="120" height="104" rx="10" fill="#172554" stroke="#93C5FD"/>
+  <text x="818" y="66" fill="#DBEAFE" font-family="Arial, sans-serif" font-size="13" font-weight="700">5. Learn</text>
+  <text x="818" y="94" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="13">outcome</text>
+  <text x="818" y="115" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="13">memory</text>
+  <text x="818" y="136" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="13">next ranking</text>
+
+  <path d="M 196 90 H 218" stroke="#7DD3FC" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <path d="M 386 90 H 408" stroke="#7DD3FC" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <path d="M 576 90 H 598" stroke="#7DD3FC" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <path d="M 766 90 H 788" stroke="#7DD3FC" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <path d="M 860 146 V 178 H 308 V 146" stroke="#475569" stroke-width="2" stroke-dasharray="5 6" marker-end="url(#arrow)"/>
 </svg>
