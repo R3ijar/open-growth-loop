@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
 
-from .io_utils import write_text_report
+from .io_utils import write_json_report, write_text_report
 from .reporting import key_value_table, markdown_table, status_label
 
 
@@ -27,8 +27,21 @@ class ReportIndex:
     def available_count(self) -> int:
         return sum(1 for report in self.reports if report.exists)
 
+    @property
+    def missing_count(self) -> int:
+        return len(self.reports) - self.available_count
+
+    @property
+    def ready_for_review(self) -> bool:
+        return self.missing_count == 0
+
+    @property
+    def missing_reports(self) -> list[str]:
+        return [report.name for report in self.reports if not report.exists]
+
 
 REPORTS = [
+    ("Doctor", "doctor/latest-doctor.md", "One-shot readiness check across validation, freshness, privacy, planning, and release review."),
     ("Plan", "plans/latest-plan.md", "The selected daily maintainer action and decision trace."),
     ("Candidates", "candidates/latest-candidates.md", "All ranked actions considered by the conservative engine."),
     ("Freshness", "freshness/latest-freshness.md", "Whether local CSV inputs are recent enough to trust."),
@@ -49,7 +62,6 @@ def build_report_index(workspace: Path) -> ReportIndex:
 
 
 def render_report_index(index: ReportIndex) -> str:
-    missing = len(index.reports) - index.available_count
     lines = [
         "# Open Growth Loop Report Index",
         "",
@@ -61,7 +73,9 @@ def render_report_index(index: ReportIndex) -> str:
             [
                 ("Workspace", index.workspace),
                 ("Reports available", index.available_count),
-                ("Reports missing", missing),
+                ("Reports missing", index.missing_count),
+                ("Review ready", "yes" if index.ready_for_review else "not yet"),
+                ("Next missing report", index.missing_reports[0] if index.missing_reports else "none"),
             ]
         ),
         "",
@@ -95,6 +109,24 @@ def render_report_index(index: ReportIndex) -> str:
 
 def write_report_index(index: ReportIndex, out_dir: Path) -> tuple[Path, Path]:
     return write_text_report(out_dir / "index.md", render_report_index(index))
+
+
+def write_report_index_json(index: ReportIndex, out_dir: Path) -> tuple[Path, Path]:
+    return write_json_report(out_dir / "index.json", report_index_payload(index))
+
+
+def report_index_payload(index: ReportIndex) -> dict[str, object]:
+    return {
+        "workspace": index.workspace,
+        "outbox": index.outbox,
+        "summary": {
+            "available_count": index.available_count,
+            "missing_count": index.missing_count,
+            "ready_for_review": index.ready_for_review,
+            "missing_reports": index.missing_reports,
+        },
+        "reports": [asdict(report) for report in index.reports],
+    }
 
 
 def _report_item(outbox: Path, name: str, rel_path: str, description: str) -> ReportIndexItem:

@@ -4,9 +4,12 @@ All notable changes to Open Growth Loop are documented here.
 
 ## Unreleased
 
+## 0.1.7 - 2026-06-03
+
 ### Added
 
 - `ogl doctor` command that composes validation, freshness, privacy scanning, candidate ranking, planning, and release-readiness into one local maintainer readiness report.
+- Report index JSON output at `outbox/index.json`, including readiness summary, missing reports, and per-report metadata for automation-friendly reviews.
 
 ## 0.1.6 - 2026-06-03
 

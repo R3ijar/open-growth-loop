@@ -19,7 +19,7 @@ from .privacy import render_privacy_scan_markdown, scan_privacy
 from .prompts import render_codex_prompt
 from .query_backlog import build_query_backlog, render_query_backlog
 from .release_brief import build_release_brief, write_release_brief_reports
-from .report_index import build_report_index, write_report_index
+from .report_index import build_report_index, write_report_index, write_report_index_json
 from .weekly import build_weekly_review, render_weekly_review
 from .workspace import init_workspace, validate_workspace
 
@@ -567,13 +567,18 @@ def run_release_brief(args: argparse.Namespace, workspace: Path, config: GrowthC
 def run_report_index(workspace: Path) -> None:
     index = build_report_index(workspace)
     latest_path, history_path = write_report_index(index, workspace / "outbox")
+    json_path, json_history_path = write_report_index_json(index, workspace / "outbox")
     print(
         json.dumps(
             {
                 "reports": len(index.reports),
                 "available": index.available_count,
+                "missing": index.missing_count,
+                "ready_for_review": index.ready_for_review,
                 "index": str(latest_path),
                 "index_history": str(history_path),
+                "json": str(json_path),
+                "json_history": str(json_history_path),
             },
             indent=2,
         )
@@ -664,8 +669,12 @@ def generate_demo_reports(workspace: Path, config: GrowthConfig, include_tests: 
     release = build_release_brief(workspace, config, include_tests=include_tests)
     release_md, _, release_json, _ = write_release_brief_reports(release, workspace / "outbox" / "release-brief")
 
+    doctor = build_doctor_report(workspace, config, include_tests=include_tests)
+    doctor_md, _, doctor_json, _ = write_doctor_reports(doctor, workspace / "outbox" / "doctor")
+
     report_index = build_report_index(workspace)
     index_md, _ = write_report_index(report_index, workspace / "outbox")
+    index_json, _ = write_report_index_json(report_index, workspace / "outbox")
 
     return {
         "validation_ok": validation.ok,
@@ -696,6 +705,9 @@ def generate_demo_reports(workspace: Path, config: GrowthConfig, include_tests: 
             "privacy_scan_json": str(privacy_json),
             "release_brief": str(release_md),
             "release_brief_json": str(release_json),
+            "doctor": str(doctor_md),
+            "doctor_json": str(doctor_json),
             "report_index": str(index_md),
+            "report_index_json": str(index_json),
         },
     }

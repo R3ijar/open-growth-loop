@@ -17,17 +17,21 @@ class DemoCommandTests(unittest.TestCase):
             payload = generate_demo_reports(root, load_config(root))
             reports = payload["reports"]
             plan_exists = Path(reports["plan"]).exists()
+            doctor_exists = Path(reports["doctor"]).exists()
             release_brief_exists = Path(reports["release_brief"]).exists()
             report_index_exists = Path(reports["report_index"]).exists()
+            report_index_json_exists = Path(reports["report_index_json"]).exists()
 
         self.assertTrue(payload["validation_ok"])
         self.assertTrue(payload["privacy_ok"])
         self.assertEqual(payload["candidates"], 3)
         self.assertEqual(payload["opportunities"], 1)
-        self.assertEqual(payload["report_index_available"], 10)
+        self.assertEqual(payload["report_index_available"], 11)
         self.assertTrue(plan_exists)
+        self.assertTrue(doctor_exists)
         self.assertTrue(release_brief_exists)
         self.assertTrue(report_index_exists)
+        self.assertTrue(report_index_json_exists)
 
 
 def _write_workspace(root: Path) -> None:

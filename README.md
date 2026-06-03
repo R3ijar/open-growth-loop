@@ -5,7 +5,7 @@
 [![CI](https://github.com/R3ijar/open-growth-loop/actions/workflows/ci.yml/badge.svg)](https://github.com/R3ijar/open-growth-loop/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB.svg)](pyproject.toml)
-[![Release: v0.1.6](https://img.shields.io/badge/release-v0.1.6-0F766E.svg)](https://github.com/R3ijar/open-growth-loop/releases/tag/v0.1.6)
+[![Release: v0.1.7](https://img.shields.io/badge/release-v0.1.7-0F766E.svg)](https://github.com/R3ijar/open-growth-loop/releases/tag/v0.1.7)
 
 Turn Search Console CSVs, aggregate event CSVs, content inventory, and experiment logs into **one conservative daily maintainer action** without sending project data to a hosted service.
 
@@ -20,7 +20,7 @@ Turn Search Console CSVs, aggregate event CSVs, content inventory, and experimen
 | Maintainer workflow | doctor -> demo -> validation -> freshness -> candidates -> plan -> issue/prompt -> release brief -> report index -> outcome |
 | Runnable examples | 5 synthetic workspaces covering release evidence, funnel dropoff, aliased exports, package pages, and release notes |
 | Release readiness | `ogl release-brief` checks validation, freshness, privacy, examples, changelog, README coverage, and claim guardrails |
-| Verification | 56 tests, CI passing, privacy scan clean |
+| Verification | 57 tests, CI passing, privacy scan clean |
 | Privacy model | local CSVs only; aggregate events only; no hosted analytics service |
 
 ## What It Produces
@@ -30,6 +30,8 @@ After one local run, a maintainer has reviewable files under `outbox/`:
 | Output | What it is for |
 | --- | --- |
 | `outbox/index.md` | Local report front page linking generated outputs with status, timestamps, and reading order. |
+| `outbox/index.json` | Machine-readable report readiness summary for automation or CI review. |
+| `latest-doctor` | One-shot readiness report across validation, freshness, privacy, planning, and release review. |
 | `latest-candidates` | See every action the planner considered and why it ranked lower or higher. |
 | `latest-plan` | One conservative daily action with Decision Trace v2 and Data Freshness. |
 | `latest-prompt` | A focused Codex-ready prompt for the next reviewable change. |
@@ -39,8 +41,10 @@ After one local run, a maintainer has reviewable files under `outbox/`:
 
 The tool is intentionally generic. It does not know about any one product, private app, customer database, or specialized domain. It is useful for projects that maintain docs, examples, changelogs, educational pages, package pages, or project websites and want to decide what to improve next from public/search signals and privacy-safe event aggregates.
 
-## v0.1.6 Highlights
+## v0.1.7 Highlights
 
+- **Maintainer Doctor:** `ogl doctor` gives one readiness report across validation, freshness, privacy, candidate ranking, planning, and release review.
+- **Report Index JSON:** `ogl report-index` now writes `outbox/index.json` with available/missing reports for automation-friendly review.
 - **Demo Run:** `ogl demo` generates the main local report set in one command so reviewers can inspect the workflow quickly.
 - **Report Gallery:** public reviewer-facing examples show the generated report shapes without exposing private data or requiring a local run.
 - **Report Design v1:** generated Markdown reports now use scorecards, ranking tables, freshness tables, release-readiness tables, and collapsible audit evidence.
@@ -168,6 +172,8 @@ It writes reviewable Markdown/JSON files under `outbox/`:
 
 - a complete demo report set from `ogl demo`
 - a local report index with status, timestamps, links, and reading order
+- a report index JSON summary with available and missing reports
+- a maintainer doctor report for one-shot readiness checks
 - a ranked query backlog
 - a data freshness report
 - one daily action plan

@@ -6,7 +6,7 @@ from pathlib import Path
 
 from open_growth_loop.io_utils import write_json_report, write_text_report
 from open_growth_loop.planner import DailyPlan, render_plan_markdown, write_plan_reports
-from open_growth_loop.report_index import build_report_index, render_report_index, write_report_index
+from open_growth_loop.report_index import build_report_index, render_report_index, report_index_payload, write_report_index, write_report_index_json
 
 
 class ReportHistoryTests(unittest.TestCase):
@@ -112,12 +112,19 @@ class ReportHistoryTests(unittest.TestCase):
             index = build_report_index(root)
             markdown = render_report_index(index)
             latest, history = write_report_index(index, root / "outbox")
+            json_latest, json_history = write_report_index_json(index, root / "outbox")
+            payload = report_index_payload(index)
 
         self.assertEqual(index.available_count, 1)
+        self.assertFalse(index.ready_for_review)
+        self.assertIn("Doctor", index.missing_reports)
+        self.assertEqual(payload["summary"]["available_count"], 1)
         self.assertIn("[plans/latest-plan.md](plans/latest-plan.md)", markdown)
         self.assertIn("Recommended Reading Order", markdown)
         self.assertEqual(latest.name, "index.md")
         self.assertTrue(history.name.endswith("-index.md"))
+        self.assertEqual(json_latest.name, "index.json")
+        self.assertTrue(json_history.name.endswith("-index.json"))
 
 
 if __name__ == "__main__":
