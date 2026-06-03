@@ -17,7 +17,7 @@
   <text x="74" y="256" fill="#CBD5E1" font-family="Consolas, monospace" font-size="16">Asset: /guides/configuration-checklist</text>
   <text x="74" y="284" fill="#CBD5E1" font-family="Consolas, monospace" font-size="16">Why: staged work should be proven public before creating another asset.</text>
   <text x="74" y="314" fill="#A7F3D0" font-family="Consolas, monospace" font-size="16">Decision Trace v2: winner, alternatives, losing reasons, thresholds.</text>
-  <text x="50" y="378" fill="#93C5FD" font-family="Consolas, monospace" font-size="18">$ ogl prompt && ogl issue-drafts</text>
+  <text x="50" y="378" fill="#93C5FD" font-family="Consolas, monospace" font-size="18">$ ogl prompt &amp;&amp; ogl issue-drafts</text>
   <text x="50" y="418" fill="#E5E7EB" font-family="Consolas, monospace" font-size="16">Reviewable Markdown/JSON out. No automatic publishing. No raw user data.</text>
   <text x="50" y="456" fill="#A7F3D0" font-family="Consolas, monospace" font-size="16">Conservative by default: freshness, decision trace, outcome memory.</text>
 </svg>
