@@ -43,7 +43,7 @@ The report can be `ready with manual review`. That means deterministic checks pa
 
 | Field | Value |
 | --- | --- |
-| Project | open-growth-loop 0.1.4 |
+| Project | open-growth-loop 0.1.5 |
 | Generated at | 2026-06-03 |
 | Release status | ready with manual review |
 | Workspace validation | PASS |

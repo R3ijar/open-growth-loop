@@ -4,6 +4,12 @@ All notable changes to Open Growth Loop are documented here.
 
 ## Unreleased
 
+## 0.1.5 - 2026-06-03
+
+### Added
+
+- Public report gallery with sanitized examples of the report index, daily plan, candidate ranking, freshness report, issue draft, release brief, and weekly review.
+
 ## 0.1.4 - 2026-06-03
 
 ### Added
