@@ -1,0 +1,4 @@
+status,type,asset,primary_query,cta,owner_note
+published,release_note,/changelog/v0.1.2,open growth loop data freshness release,Read the upgrade notes,Release notes page for new maintainer features
+published,docs,/docs/freshness,data freshness docs,Run freshness check,Feature documentation linked from release notes
+planned,guide,/guides/release-note-checklist,release notes checklist,Copy release checklist,Queued release workflow guide

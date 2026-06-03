@@ -4,6 +4,10 @@ All notable changes to Open Growth Loop are documented here.
 
 ## Unreleased
 
+### Added
+
+- Runnable synthetic package-page and release-note sample workspaces, including documented expected `ogl plan` outputs.
+
 ## 0.1.2 - 2026-06-03
 
 ### Added

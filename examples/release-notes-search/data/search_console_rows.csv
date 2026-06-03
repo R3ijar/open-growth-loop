@@ -1,0 +1,4 @@
+query,page,clicks,impressions,ctr,position
+open growth loop data freshness,/changelog/v0.1.2,5,180,0.028,11.4
+data freshness docs,/docs/freshness,18,220,0.082,5.3
+maintainer release notes checklist,/guides/release-note-checklist,0,60,0,16.2

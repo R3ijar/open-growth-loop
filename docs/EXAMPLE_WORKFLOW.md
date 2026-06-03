@@ -7,6 +7,8 @@ For additional runnable examples, see `examples/`:
 - `examples/staged-release-check`
 - `examples/funnel-dropoff`
 - `examples/aliased-search-export`
+- `examples/package-page-cta`
+- `examples/release-notes-search`
 
 ## Scenario
 

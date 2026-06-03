@@ -1,0 +1,4 @@
+status,type,asset,primary_query,cta,owner_note
+published,package_page,/packages/example-cli,example cli package,Install from package index,Public package page with install command and quick promise
+published,docs,/docs/quickstart,example cli quickstart,Run the quickstart,Healthy onboarding page linked from package page
+planned,guide,/guides/package-install-errors,example cli install errors,Open troubleshooting guide,Queued support content from aggregate search demand

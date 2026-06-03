@@ -1,0 +1,7 @@
+date,asset,event,count
+2026-06-01,/changelog/v0.1.2,view,160
+2026-06-01,/changelog/v0.1.2,cta,18
+2026-06-01,/changelog/v0.1.2,conversion,6
+2026-06-01,/docs/freshness,view,210
+2026-06-01,/docs/freshness,cta,31
+2026-06-01,/docs/freshness,conversion,9

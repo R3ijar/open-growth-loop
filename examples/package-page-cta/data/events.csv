@@ -1,0 +1,7 @@
+date,asset,event,count
+2026-06-01,/packages/example-cli,view,520
+2026-06-01,/packages/example-cli,cta,12
+2026-06-01,/packages/example-cli,conversion,1
+2026-06-01,/docs/quickstart,view,190
+2026-06-01,/docs/quickstart,cta,28
+2026-06-01,/docs/quickstart,conversion,11

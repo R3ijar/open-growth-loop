@@ -69,3 +69,7 @@ Implemented richer plan traces with selected winner metadata, ranked alternative
 ### Add Data Freshness V1
 
 Implemented `ogl freshness` and embedded plan freshness checks so real local CSV inputs can warn when they are stale, empty, missing, future-dated, or still sample data.
+
+### Add Package Page And Release Note Sample Data Shapes
+
+Implemented runnable synthetic examples for a package-page CTA dropoff and release-note search opportunity, with documented expected `ogl plan` outputs.

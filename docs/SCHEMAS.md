@@ -18,6 +18,17 @@ Allowed `status` values:
 - `staged`
 - `published`
 
+The `type` field is intentionally flexible. Common public-safe values include:
+
+- `docs`
+- `guide`
+- `example`
+- `package_page`
+- `release_note`
+- `changelog`
+
+The planner uses `status` and aggregate evidence for ranking. `type` helps maintainers and generated issue drafts describe what kind of public surface is being improved.
+
 ## Search Rows
 
 Default path: `data/search_console_rows.csv`

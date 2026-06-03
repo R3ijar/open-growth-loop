@@ -1,0 +1,2 @@
+id,status,asset,action_type,planned_on,review_after,shipped_on,baseline_impressions,baseline_clicks,baseline_views,baseline_conversions,artifact,note,outcome
+2026-05-20-001,shipped,/docs/freshness,search_striking_distance,2026-05-20,2026-06-03,2026-05-21,200,16,190,8,https://example.org/docs/freshness,Synthetic freshness docs search follow-up,directionally_positive

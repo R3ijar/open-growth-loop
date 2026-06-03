@@ -19,16 +19,17 @@
 - Configurable stale-work windows.
 - Decision Trace v2 for competing candidates.
 - Data Freshness v1 for local CSV inputs.
-
-## 0.2
-
 - More sample data shapes for package pages and release notes.
 
-## 0.3
+## 0.2
 
 - Optional GitHub issue creation from reviewed drafts.
 - Optional static-site sitemap checks.
 - Optional package registry metadata checks.
+
+## 0.3
+
+- Release-readiness scoring for docs and package-page launches.
 
 ## Principles
 

@@ -77,6 +77,27 @@ Example plan output:
 
 ![Open Growth Loop workflow](docs/assets/open-growth-loop-flow.svg)
 
+## Runnable Examples
+
+The repository includes synthetic workspaces that show the planner on concrete OSS maintainer surfaces:
+
+| Example | What it shows | Expected daily plan |
+| --- | --- | --- |
+| `examples/staged-release-check` | Staged docs work needs public release evidence. | `release_evidence` for `/docs/configuration-checklist` |
+| `examples/funnel-dropoff` | A docs page gets views but weak downstream movement. | `fix_funnel` for `/docs/getting-started` |
+| `examples/aliased-search-export` | Search exports with nonstandard headers can be mapped locally. | `search_striking_distance` for `/guides/plugin-migration` |
+| `examples/package-page-cta` | A package page gets attention but not enough install/try clicks. | `fix_funnel` for `/packages/example-cli` |
+| `examples/release-notes-search` | Release notes have near-ranking search demand. | `search_striking_distance` for `/changelog/v0.1.2` |
+
+Run one from the repository root:
+
+```bash
+python -m open_growth_loop --workspace examples/package-page-cta validate
+python -m open_growth_loop --workspace examples/package-page-cta freshness
+python -m open_growth_loop --workspace examples/package-page-cta plan
+python -m open_growth_loop --workspace examples/package-page-cta prompt
+```
+
 ## Commands
 
 - `ogl init` creates the local `data/` files for a project.
@@ -333,7 +354,7 @@ ogl outcome --workspace . --asset /docs/setup --outcome directionally_positive
 Then give `outbox/prompts/latest-prompt.md` or the plan output to Codex and work on one concrete change before recording the public artifact with `ogl ship`.
 
 For a full walkthrough using the bundled sample CSVs, see [docs/EXAMPLE_WORKFLOW.md](docs/EXAMPLE_WORKFLOW.md).
-For runnable example workspaces covering release evidence, funnel dropoff, and aliased exports, see [examples/README.md](examples/README.md).
+For runnable example workspaces covering release evidence, funnel dropoff, aliased exports, package pages, and release notes, see [examples/README.md](examples/README.md).
 For the initial public backlog, see [docs/NEXT_ISSUES.md](docs/NEXT_ISSUES.md).
 For release notes, see [CHANGELOG.md](CHANGELOG.md).
 

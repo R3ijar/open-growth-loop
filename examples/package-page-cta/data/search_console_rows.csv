@@ -1,0 +1,4 @@
+query,page,clicks,impressions,ctr,position
+example cli package,/packages/example-cli,22,450,0.049,4.1
+example cli quickstart,/docs/quickstart,20,210,0.095,5.0
+example cli install errors,/guides/package-install-errors,0,35,0,18.2
