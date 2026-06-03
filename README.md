@@ -32,6 +32,18 @@ After one local run, a maintainer gets:
 - **Decision Trace v2:** explains the selected winner, ranked alternatives, losing reasons, thresholds, blocked state, and memory notes.
 - **Local Issue Drafts:** turns the latest plan into reviewable Markdown without creating GitHub issues automatically.
 
+## Planner Engine Coverage
+
+The current planner engine evaluates one daily action across the maintainer surfaces that commonly shape OSS adoption:
+
+- **Release evidence:** verify staged docs, examples, package pages, or changelog entries before treating them as shipped.
+- **Funnel dropoff:** find public pages with enough aggregate views but weak install, try, signup, or next-step clicks.
+- **Search opportunities:** identify near-ranking pages and low-CTR queries from Search Console-style exports.
+- **Planned assets:** fall back to the next queued guide, example, onboarding page, package page, or release note only when stronger signals are absent.
+- **Outcome memory:** cool repeated work until a completed action has a recorded result, then use that local outcome as ranking context.
+
+Package pages and release notes are covered through the same generic CSV rules as docs and examples. They are not product-specific integrations or hosted analytics features.
+
 ## Why Maintainers Use It
 
 | Maintainer problem | What Open Growth Loop does |

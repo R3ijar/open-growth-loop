@@ -7,6 +7,7 @@ All notable changes to Open Growth Loop are documented here.
 ### Added
 
 - Runnable synthetic package-page and release-note sample workspaces, including documented expected `ogl plan` outputs.
+- README planner-engine coverage section that explains the public maintainer surfaces supported by the generic rules.
 
 ## 0.1.2 - 2026-06-03
 
