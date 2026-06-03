@@ -55,18 +55,7 @@ Example plan output:
 
 ## How The Loop Works
 
-```mermaid
-flowchart LR
-    search["Search Console CSV"] --> candidates["ogl candidates"]
-    events["Aggregate events CSV"] --> candidates
-    inventory["Content inventory"] --> candidates
-    memory["Action memory"] --> candidates
-    candidates --> plan["ogl plan"]
-    plan --> prompt["ogl prompt"]
-    plan --> complete["ogl complete"]
-    complete --> outcome["ogl outcome"]
-    outcome --> memory
-```
+![Open Growth Loop workflow](docs/assets/open-growth-loop-flow.svg)
 
 ## Commands
 
