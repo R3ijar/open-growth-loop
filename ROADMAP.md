@@ -20,6 +20,7 @@
 - Decision Trace v2 for competing candidates.
 - Data Freshness v1 for local CSV inputs.
 - More sample data shapes for package pages and release notes.
+- One-command demo report generation.
 
 ## 0.2
 

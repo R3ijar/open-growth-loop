@@ -5,7 +5,7 @@
 [![CI](https://github.com/R3ijar/open-growth-loop/actions/workflows/ci.yml/badge.svg)](https://github.com/R3ijar/open-growth-loop/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB.svg)](pyproject.toml)
-[![Release: v0.1.5](https://img.shields.io/badge/release-v0.1.5-0F766E.svg)](https://github.com/R3ijar/open-growth-loop/releases/tag/v0.1.5)
+[![Release: v0.1.6](https://img.shields.io/badge/release-v0.1.6-0F766E.svg)](https://github.com/R3ijar/open-growth-loop/releases/tag/v0.1.6)
 
 Turn Search Console CSVs, aggregate event CSVs, content inventory, and experiment logs into **one conservative daily maintainer action** without sending project data to a hosted service.
 
@@ -17,10 +17,10 @@ Turn Search Console CSVs, aggregate event CSVs, content inventory, and experimen
 
 | Signal | Current state |
 | --- | --- |
-| Maintainer workflow | validation -> freshness -> candidates -> plan -> issue/prompt -> release brief -> report index -> outcome |
+| Maintainer workflow | demo -> validation -> freshness -> candidates -> plan -> issue/prompt -> release brief -> report index -> outcome |
 | Runnable examples | 5 synthetic workspaces covering release evidence, funnel dropoff, aliased exports, package pages, and release notes |
 | Release readiness | `ogl release-brief` checks validation, freshness, privacy, examples, changelog, README coverage, and claim guardrails |
-| Verification | 55 tests, CI passing, privacy scan clean |
+| Verification | 56 tests, CI passing, privacy scan clean |
 | Privacy model | local CSVs only; aggregate events only; no hosted analytics service |
 
 ## What It Produces
@@ -39,8 +39,9 @@ After one local run, a maintainer has reviewable files under `outbox/`:
 
 The tool is intentionally generic. It does not know about any one product, private app, customer database, or specialized domain. It is useful for projects that maintain docs, examples, changelogs, educational pages, package pages, or project websites and want to decide what to improve next from public/search signals and privacy-safe event aggregates.
 
-## v0.1.5 Highlights
+## v0.1.6 Highlights
 
+- **Demo Run:** `ogl demo` generates the main local report set in one command so reviewers can inspect the workflow quickly.
 - **Report Gallery:** public reviewer-facing examples show the generated report shapes without exposing private data or requiring a local run.
 - **Report Design v1:** generated Markdown reports now use scorecards, ranking tables, freshness tables, release-readiness tables, and collapsible audit evidence.
 - **Report Index:** `ogl report-index` writes a local `outbox/index.md` front page so maintainers can review generated reports in the right order.
@@ -84,6 +85,7 @@ python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -e .
 python -m open_growth_loop --workspace . validate
+python -m open_growth_loop --workspace . demo
 python -m open_growth_loop --workspace . freshness
 python -m open_growth_loop --workspace . candidates
 python -m open_growth_loop --workspace . plan
@@ -133,6 +135,7 @@ python -m open_growth_loop --workspace examples/package-page-cta prompt
 
 - `ogl init` creates the local `data/` files for a project.
 - `ogl validate` checks that CSV inputs are complete and privacy-safe.
+- `ogl demo` writes the main local report set in one reviewable run.
 - `ogl freshness` reports whether real local CSV inputs are recent enough to trust.
 - `ogl candidates` writes all ranked action candidates considered by the planner.
 - `ogl query-backlog` ranks Search Console rows into maintenance opportunities.
@@ -161,6 +164,7 @@ Open Growth Loop reads:
 
 It writes reviewable Markdown/JSON files under `outbox/`:
 
+- a complete demo report set from `ogl demo`
 - a local report index with status, timestamps, links, and reading order
 - a ranked query backlog
 - a data freshness report
@@ -223,6 +227,12 @@ Validate the local workspace:
 
 ```bash
 ogl validate --workspace .
+```
+
+Generate the main report set in one run:
+
+```bash
+ogl demo --workspace .
 ```
 
 Check whether real local inputs are fresh enough to trust:
@@ -431,7 +441,7 @@ Generated plans also include a Data Freshness block. Sample `.example.csv` files
 
 ## Project Status
 
-Current release: v0.1.5.
+Current release: v0.1.6.
 
 This is an early open-source extraction of a local growth-operations loop. It is ready for small CSV-driven maintainer workflows and intended to grow through issues, examples, and contributor feedback.
 

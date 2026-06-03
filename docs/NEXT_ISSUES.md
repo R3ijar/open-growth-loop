@@ -73,3 +73,7 @@ Implemented `ogl freshness` and embedded plan freshness checks so real local CSV
 ### Add Package Page And Release Note Sample Data Shapes
 
 Implemented runnable synthetic examples for a package-page CTA dropoff and release-note search opportunity, with documented expected `ogl plan` outputs.
+
+### Add One-Command Demo Report Generation
+
+Implemented `ogl demo` so maintainers and reviewers can generate the main local report set in one command.

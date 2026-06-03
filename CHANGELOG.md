@@ -4,6 +4,12 @@ All notable changes to Open Growth Loop are documented here.
 
 ## Unreleased
 
+## 0.1.6 - 2026-06-03
+
+### Added
+
+- `ogl demo` command that generates the main local report set in one reviewable run: freshness, candidates, query backlog, plan, prompt, issue draft, experiment review, weekly review, privacy scan, release brief, and report index.
+
 ## 0.1.5 - 2026-06-03
 
 ### Added

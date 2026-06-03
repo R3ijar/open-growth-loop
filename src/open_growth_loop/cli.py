@@ -141,6 +141,10 @@ def main() -> None:
     report_index = subparsers.add_parser("report-index", help="Write a local index of generated outbox reports.")
     add_workspace_argument(report_index)
 
+    demo = subparsers.add_parser("demo", help="Generate the main local reports in one reviewable demo run.")
+    add_workspace_argument(demo)
+    demo.add_argument("--include-tests", action="store_true", help="Include tests/ directories in privacy checks.")
+
     args = parser.parse_args()
     workspace = Path(args.workspace or args.global_workspace or ".").resolve()
     try:
@@ -187,6 +191,8 @@ def main() -> None:
         run_release_brief(args, workspace, config)
     elif args.command == "report-index":
         run_report_index(workspace)
+    elif args.command == "demo":
+        run_demo(args, workspace, config)
 
 
 def add_workspace_argument(parser: argparse.ArgumentParser) -> None:
@@ -544,3 +550,124 @@ def run_report_index(workspace: Path) -> None:
             indent=2,
         )
     )
+
+
+def run_demo(args: argparse.Namespace, workspace: Path, config: GrowthConfig) -> None:
+    print(json.dumps(generate_demo_reports(workspace, config, include_tests=args.include_tests), indent=2))
+
+
+def generate_demo_reports(workspace: Path, config: GrowthConfig, include_tests: bool = False) -> dict[str, object]:
+    inventory, search_rows, events = default_data_paths(workspace)
+    data_dir = workspace / "data"
+    ledger = first_existing([data_dir / "experiments.csv", data_dir / "experiments.example.csv"])
+    memory = default_memory_path(workspace)
+
+    validation = validate_workspace(workspace, config)
+
+    freshness = build_freshness_report(
+        {
+            "content_inventory": inventory,
+            "search_rows": search_rows,
+            "events": events,
+            "experiments": ledger,
+        },
+        config.schema_aliases,
+        warn_after_days=config.thresholds.freshness_warn_days,
+    )
+    freshness_md, _, freshness_json, _ = write_freshness_reports(freshness, workspace / "outbox" / "freshness")
+
+    candidates = build_candidates(
+        inventory,
+        search_rows,
+        events,
+        minimum_impressions=config.thresholds.minimum_impressions,
+        minimum_views=config.thresholds.minimum_views,
+        weak_cta_rate=config.thresholds.weak_cta_rate,
+        memory_path=memory,
+        aliases=config.schema_aliases,
+    )
+    candidates_md, _ = write_text_report(workspace / "outbox" / "candidates" / "latest-candidates.md", render_candidates_markdown(candidates))
+    candidates_json, _ = write_json_report(workspace / "outbox" / "candidates" / "latest-candidates.json", [asdict(candidate) for candidate in candidates])
+
+    opportunities = build_query_backlog(search_rows, config.thresholds.minimum_impressions, config.aliases_for("search_rows"))
+    query_backlog_md, _ = write_text_report(workspace / "outbox" / "query-backlog.md", render_query_backlog(opportunities))
+
+    plan = build_daily_plan(
+        inventory,
+        search_rows,
+        events,
+        minimum_impressions=config.thresholds.minimum_impressions,
+        minimum_views=config.thresholds.minimum_views,
+        weak_cta_rate=config.thresholds.weak_cta_rate,
+        memory_path=memory,
+        aliases=config.schema_aliases,
+        freshness_warn_days=config.thresholds.freshness_warn_days,
+    )
+    plan_md, plan_json = write_plan_reports(plan, workspace / "outbox" / "plans")
+
+    prompt_md, _ = write_text_report(workspace / "outbox" / "prompts" / "latest-prompt.md", render_codex_prompt(plan))
+    issue_md, _ = write_issue_draft(plan, workspace / "outbox" / "issues")
+
+    reviews = review_experiments(
+        ledger,
+        search_rows,
+        events,
+        config.thresholds.minimum_impressions,
+        config.thresholds.minimum_views,
+        config.schema_aliases,
+    )
+    experiment_review_md, _ = write_text_report(workspace / "outbox" / "experiment-review.md", render_reviews_markdown(reviews))
+    experiment_review_json, _ = write_json_report(workspace / "outbox" / "experiment-review.json", [asdict(review) for review in reviews])
+
+    weekly = build_weekly_review(
+        inventory,
+        ledger,
+        config.schema_aliases,
+        stale_planned_days=config.thresholds.stale_planned_days,
+        stale_shipped_days=config.thresholds.stale_shipped_days,
+    )
+    weekly_md, _ = write_text_report(workspace / "outbox" / "weekly-review.md", render_weekly_review(weekly))
+    weekly_json, _ = write_json_report(workspace / "outbox" / "weekly-review.json", asdict(weekly))
+
+    privacy = scan_privacy(workspace, include_tests=include_tests)
+    privacy_md, _ = write_text_report(workspace / "outbox" / "privacy-scan.md", render_privacy_scan_markdown(privacy))
+    privacy_json, _ = write_json_report(workspace / "outbox" / "privacy-scan.json", asdict(privacy))
+
+    release = build_release_brief(workspace, config, include_tests=include_tests)
+    release_md, _, release_json, _ = write_release_brief_reports(release, workspace / "outbox" / "release-brief")
+
+    report_index = build_report_index(workspace)
+    index_md, _ = write_report_index(report_index, workspace / "outbox")
+
+    return {
+        "validation_ok": validation.ok,
+        "validation_errors": validation.errors,
+        "privacy_ok": privacy.ok,
+        "privacy_findings": len(privacy.findings),
+        "release_ready": release.ready,
+        "release_warnings": len(release.warnings),
+        "candidates": len(candidates),
+        "opportunities": len(opportunities),
+        "experiment_reviews": len(reviews),
+        "report_index_available": report_index.available_count,
+        "reports": {
+            "freshness": str(freshness_md),
+            "freshness_json": str(freshness_json),
+            "candidates": str(candidates_md),
+            "candidates_json": str(candidates_json),
+            "query_backlog": str(query_backlog_md),
+            "plan": str(plan_md),
+            "plan_json": str(plan_json),
+            "prompt": str(prompt_md),
+            "issue_draft": str(issue_md),
+            "experiment_review": str(experiment_review_md),
+            "experiment_review_json": str(experiment_review_json),
+            "weekly_review": str(weekly_md),
+            "weekly_review_json": str(weekly_json),
+            "privacy_scan": str(privacy_md),
+            "privacy_scan_json": str(privacy_json),
+            "release_brief": str(release_md),
+            "release_brief_json": str(release_json),
+            "report_index": str(index_md),
+        },
+    }
