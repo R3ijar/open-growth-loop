@@ -12,7 +12,7 @@ Open Growth Loop turns Search Console exports, aggregate event CSVs, content inv
 local CSVs -> freshness check -> ranked candidates -> one daily plan -> issue/prompt -> outcome memory
 ```
 
-![Open Growth Loop terminal preview](docs/assets/open-growth-loop-preview.svg)
+![Open Growth Loop terminal preview](docs/assets/open-growth-loop-preview-v012.svg)
 
 The tool is intentionally generic. It does not know about any one product, private app, customer database, or specialized domain. It is useful for projects that maintain docs, examples, changelogs, educational pages, package pages, or project websites and want to decide what to improve next from public/search signals and privacy-safe event aggregates.
 
