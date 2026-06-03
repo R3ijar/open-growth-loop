@@ -1,0 +1,23 @@
+<svg width="960" height="500" viewBox="0 0 960 500" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Open Growth Loop terminal preview</title>
+  <desc id="desc">A terminal-style preview showing Open Growth Loop selecting one evidence-based maintainer action and recording outcome memory.</desc>
+  <rect width="960" height="500" rx="18" fill="#0D1117"/>
+  <rect x="1" y="1" width="958" height="498" rx="17" stroke="#30363D" stroke-width="2"/>
+  <rect x="24" y="24" width="912" height="452" rx="12" fill="#111827"/>
+  <rect x="24" y="24" width="912" height="42" rx="12" fill="#1F2937"/>
+  <circle cx="51" cy="45" r="6" fill="#F87171"/>
+  <circle cx="73" cy="45" r="6" fill="#FBBF24"/>
+  <circle cx="95" cy="45" r="6" fill="#34D399"/>
+  <text x="120" y="50" fill="#CBD5E1" font-family="Consolas, monospace" font-size="14">open-growth-loop</text>
+  <text x="50" y="104" fill="#93C5FD" font-family="Consolas, monospace" font-size="18">$ ogl candidates --workspace .</text>
+  <text x="50" y="140" fill="#E5E7EB" font-family="Consolas, monospace" font-size="16">7 ranked candidates written to outbox/candidates/latest-candidates.md</text>
+  <text x="50" y="178" fill="#93C5FD" font-family="Consolas, monospace" font-size="18">$ ogl plan --workspace .</text>
+  <rect x="50" y="202" width="860" height="118" rx="10" fill="#0B1220" stroke="#334155"/>
+  <text x="74" y="236" fill="#F8FAFC" font-family="Consolas, monospace" font-size="18">Action: release_evidence</text>
+  <text x="74" y="266" fill="#CBD5E1" font-family="Consolas, monospace" font-size="16">Asset: /guides/configuration-checklist</text>
+  <text x="74" y="294" fill="#CBD5E1" font-family="Consolas, monospace" font-size="16">Why: staged work should be proven public before creating another asset.</text>
+  <text x="50" y="354" fill="#93C5FD" font-family="Consolas, monospace" font-size="18">$ ogl complete</text>
+  <text x="50" y="384" fill="#93C5FD" font-family="Consolas, monospace" font-size="18">$ ogl outcome --asset /guides/configuration-checklist --outcome directionally_positive</text>
+  <text x="50" y="424" fill="#E5E7EB" font-family="Consolas, monospace" font-size="16">Action memory recorded. Exact repeat cooled; similar useful work can be ranked higher.</text>
+  <text x="50" y="456" fill="#A7F3D0" font-family="Consolas, monospace" font-size="16">No hosted service. No raw users. Local CSVs in, reviewable Markdown/JSON out.</text>
+</svg>

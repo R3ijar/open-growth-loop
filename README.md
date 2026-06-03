@@ -1,17 +1,74 @@
 # Open Growth Loop
 
-Open Growth Loop is a local-first command line tool for maintainers who want a repeatable growth, docs, and content learning loop without sending private project data to a hosted service.
+[![CI](https://github.com/R3ijar/open-growth-loop/actions/workflows/ci.yml/badge.svg)](https://github.com/R3ijar/open-growth-loop/actions/workflows/ci.yml)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB.svg)](pyproject.toml)
 
-It turns simple CSV exports into a daily action plan:
+Local-first CLI for open-source maintainers who want **one evidence-based docs, content, or onboarding action per day** without sending project data to a hosted service.
 
-- Search Console rows: queries, pages, impressions, clicks, CTR, and position.
-- First-party aggregate events: date, asset, event, and count.
-- Content inventory: planned, staged, and published docs, guides, examples, and landing pages.
-- Experiment ledger: what was changed, when it shipped, and when it should be reviewed.
+Open Growth Loop turns Search Console exports, aggregate event CSVs, content inventory, and experiment logs into a conservative maintainer workflow:
 
-The tool is intentionally generic. It does not know about any one product, private app, customer database, or specialized domain. It is useful for open-source projects that maintain docs, examples, changelogs, educational pages, package pages, or project websites and want to decide what to improve next from public/search signals and privacy-safe event aggregates.
+```text
+local CSVs -> ranked candidates -> one daily plan -> completed action -> outcome memory
+```
 
-## What It Does
+![Open Growth Loop terminal preview](docs/assets/open-growth-loop-preview.svg)
+
+The tool is intentionally generic. It does not know about any one product, private app, customer database, or specialized domain. It is useful for projects that maintain docs, examples, changelogs, educational pages, package pages, or project websites and want to decide what to improve next from public/search signals and privacy-safe event aggregates.
+
+## Why Maintainers Use It
+
+| Maintainer problem | What Open Growth Loop does |
+| --- | --- |
+| Search queries, website events, and content ideas live in different places. | Reads simple local CSVs and builds one ranked candidate list. |
+| It is easy to start new docs before shipping staged work. | Prioritizes public release evidence before speculative new pages. |
+| Small samples can make every experiment look important. | Marks weak evidence as insufficient instead of claiming success. |
+| Assistants need focused tasks, not vague growth goals. | Writes one Codex-ready prompt from the selected daily plan. |
+| Past work gets forgotten. | Records completed actions and outcomes so future ranking learns locally. |
+
+## 60-Second Quickstart
+
+From a local checkout on Windows PowerShell:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -e .
+python -m open_growth_loop --workspace . validate
+python -m open_growth_loop --workspace . candidates
+python -m open_growth_loop --workspace . plan
+python -m open_growth_loop --workspace . prompt
+```
+
+On macOS/Linux, activate the environment with `. .venv/bin/activate` before running the install and CLI commands.
+
+Example plan output:
+
+```json
+{
+  "action_type": "release_evidence",
+  "asset": "/guides/configuration-checklist",
+  "confidence": "high",
+  "reason": "Staged work should be proven public before creating another asset."
+}
+```
+
+## How The Loop Works
+
+```mermaid
+flowchart LR
+    search["Search Console CSV"] --> candidates["ogl candidates"]
+    events["Aggregate events CSV"] --> candidates
+    inventory["Content inventory"] --> candidates
+    memory["Action memory"] --> candidates
+    candidates --> plan["ogl plan"]
+    plan --> prompt["ogl prompt"]
+    plan --> complete["ogl complete"]
+    complete --> outcome["ogl outcome"]
+    outcome --> memory
+```
+
+## Commands
 
 - `ogl init` creates the local `data/` files for a project.
 - `ogl validate` checks that CSV inputs are complete and privacy-safe.
@@ -27,7 +84,17 @@ The tool is intentionally generic. It does not know about any one product, priva
 - `ogl privacy-scan` checks local files for private-data leakage risks.
 - `ogl prompt` writes a Codex-ready prompt for the next focused change.
 
-In practice, the tool reads local CSVs and writes reviewable Markdown/JSON files under `outbox/`:
+## Inputs And Outputs
+
+Open Growth Loop reads:
+
+- Search Console rows: queries, pages, impressions, clicks, CTR, and position.
+- First-party aggregate events: date, asset, event, and count.
+- Content inventory: planned, staged, and published docs, guides, examples, and landing pages.
+- Experiment ledger: what was changed, when it shipped, and when it should be reviewed.
+- Action memory: what was completed and what happened later.
+
+It writes reviewable Markdown/JSON files under `outbox/`:
 
 - a ranked query backlog
 - one daily action plan
@@ -39,23 +106,13 @@ Each report keeps the familiar `latest-*` path for daily use and also writes a d
 
 It does not publish changes, call hosted analytics APIs, or send your project data anywhere.
 
-## Why This Exists
+## What It Does Not Do
 
-Small maintainers often know they should improve docs, examples, release notes, onboarding pages, or project websites, but the work gets scattered:
-
-- Search queries live in one export.
-- Website events live somewhere else.
-- Content ideas sit in notes.
-- Release status is remembered in chat.
-- Experiments get changed before they have enough data.
-
-Open Growth Loop creates one boring, reviewable loop:
-
-1. Import only aggregate data.
-2. Pick one daily action.
-3. Track the action as an experiment.
-4. Wait for enough evidence.
-5. Review outcome without rewriting everything from noise.
+- It does not upload analytics, search data, or project files to a hosted service.
+- It does not accept raw user, session, customer, email, IP, token, or secret fields.
+- It does not publish docs, open PRs, or modify your site automatically.
+- It does not claim a change worked from tiny samples or missing artifacts.
+- It does not require GitHub auth, Search Console API access, or third-party credentials.
 
 ## Privacy Boundary
 
@@ -67,7 +124,7 @@ date,asset,event,count
 
 It rejects private-looking columns such as email, user, session, ip, payload, token, key, secret, sku, or file. This keeps the public tool reusable while project-specific private data stays in your own repo or analytics system.
 
-## Install
+## Install For Development
 
 From a local checkout:
 
@@ -84,7 +141,7 @@ python -m venv .venv
 python -m pip install -e .
 ```
 
-## Quickstart
+## Full Command Flow
 
 Initialize data files in a project:
 
