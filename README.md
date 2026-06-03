@@ -11,12 +11,6 @@ Turn Search Console CSVs, aggregate event CSVs, content inventory, and experimen
 
 [Quickstart](#60-second-quickstart) · [Runnable examples](examples/README.md) · [Dogfooding](docs/DOGFOODING.md) · [Release readiness](docs/RELEASE_READINESS.md) · [Changelog](CHANGELOG.md)
 
-Open Growth Loop turns Search Console exports, aggregate event CSVs, content inventory, and experiment logs into a conservative maintainer workflow:
-
-```text
-local CSVs -> freshness check -> ranked candidates -> one daily plan -> issue/prompt -> release brief -> outcome memory
-```
-
 ![Open Growth Loop maintainer workflow](docs/assets/open-growth-loop-system-v013.svg)
 
 ## At A Glance
