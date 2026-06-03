@@ -81,13 +81,11 @@ Example plan output:
 
 The repository includes synthetic workspaces that show the planner on concrete OSS maintainer surfaces:
 
-| Example | What it shows | Expected daily plan |
-| --- | --- | --- |
-| `examples/staged-release-check` | Staged docs work needs public release evidence. | `release_evidence` for `/docs/configuration-checklist` |
-| `examples/funnel-dropoff` | A docs page gets views but weak downstream movement. | `fix_funnel` for `/docs/getting-started` |
-| `examples/aliased-search-export` | Search exports with nonstandard headers can be mapped locally. | `search_striking_distance` for `/guides/plugin-migration` |
-| `examples/package-page-cta` | A package page gets attention but not enough install/try clicks. | `fix_funnel` for `/packages/example-cli` |
-| `examples/release-notes-search` | Release notes have near-ranking search demand. | `search_striking_distance` for `/changelog/v0.1.2` |
+- **Staged release check** (`examples/staged-release-check`): staged docs work needs public release evidence. Expected: `release_evidence` for `/docs/configuration-checklist`.
+- **Funnel dropoff** (`examples/funnel-dropoff`): a docs page gets views but weak downstream movement. Expected: `fix_funnel` for `/docs/getting-started`.
+- **Aliased search export** (`examples/aliased-search-export`): search exports with nonstandard headers can be mapped locally. Expected: `search_striking_distance` for `/guides/plugin-migration`.
+- **Package page CTA** (`examples/package-page-cta`): a package page gets attention but not enough install/try clicks. Expected: `fix_funnel` for `/packages/example-cli`.
+- **Release notes search** (`examples/release-notes-search`): release notes have near-ranking search demand. Expected: `search_striking_distance` for `/changelog/v0.1.2`.
 
 Run one from the repository root:
 
