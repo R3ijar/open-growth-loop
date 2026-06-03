@@ -4,6 +4,10 @@ All notable changes to Open Growth Loop are documented here.
 
 ## Unreleased
 
+### Added
+
+- README landing-page polish with a stronger first-screen message, maintainer workflow visual, release badge, at-a-glance project signals, and clearer output map.
+
 ## 0.1.3 - 2026-06-03
 
 ### Added

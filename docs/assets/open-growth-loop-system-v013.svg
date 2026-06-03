@@ -1,0 +1,82 @@
+<svg width="960" height="540" viewBox="0 0 960 540" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Open Growth Loop maintainer workflow</title>
+  <desc id="desc">A polished system map showing local CSV inputs flowing through a conservative planner engine into daily plans, issue drafts, Codex prompts, release briefs, and outcome memory.</desc>
+  <rect width="960" height="540" rx="8" fill="#08111F"/>
+  <path d="M0 0H960V540H0V0Z" fill="url(#grid)" opacity="0.24"/>
+  <rect x="30" y="30" width="900" height="480" rx="8" fill="#0B1220" stroke="#243041"/>
+
+  <text x="54" y="74" fill="#F8FAFC" font-family="Arial, sans-serif" font-size="30" font-weight="700">Open Growth Loop</text>
+  <text x="54" y="104" fill="#94A3B8" font-family="Arial, sans-serif" font-size="15">Local-first maintainer loop for one evidence-based docs, package, or release action per day.</text>
+
+  <rect x="682" y="54" width="95" height="30" rx="6" fill="#052E2B" stroke="#2DD4BF"/>
+  <text x="706" y="74" fill="#A7F3D0" font-family="Arial, sans-serif" font-size="12" font-weight="700">53 tests</text>
+  <rect x="790" y="54" width="118" height="30" rx="6" fill="#111827" stroke="#334155"/>
+  <text x="812" y="74" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="12" font-weight="700">Apache-2.0</text>
+
+  <text x="70" y="154" fill="#E2E8F0" font-family="Arial, sans-serif" font-size="14" font-weight="700">LOCAL INPUTS</text>
+  <text x="370" y="154" fill="#E2E8F0" font-family="Arial, sans-serif" font-size="14" font-weight="700">CONSERVATIVE ENGINE</text>
+  <text x="704" y="154" fill="#E2E8F0" font-family="Arial, sans-serif" font-size="14" font-weight="700">REVIEWABLE OUTPUTS</text>
+
+  <g font-family="Arial, sans-serif" font-size="13">
+    <rect x="54" y="178" width="214" height="48" rx="7" fill="#111827" stroke="#334155"/>
+    <text x="74" y="207" fill="#F8FAFC" font-weight="700">Search Console CSV</text>
+    <rect x="54" y="238" width="214" height="48" rx="7" fill="#111827" stroke="#334155"/>
+    <text x="74" y="267" fill="#F8FAFC" font-weight="700">Aggregate event CSV</text>
+    <rect x="54" y="298" width="214" height="48" rx="7" fill="#111827" stroke="#334155"/>
+    <text x="74" y="327" fill="#F8FAFC" font-weight="700">Content inventory</text>
+    <rect x="54" y="358" width="214" height="48" rx="7" fill="#111827" stroke="#334155"/>
+    <text x="74" y="387" fill="#F8FAFC" font-weight="700">Experiment log</text>
+  </g>
+
+  <path d="M282 202H330" stroke="#64748B" stroke-width="2"/>
+  <path d="M282 262H330" stroke="#64748B" stroke-width="2"/>
+  <path d="M282 322H330" stroke="#64748B" stroke-width="2"/>
+  <path d="M282 382H330" stroke="#64748B" stroke-width="2"/>
+  <path d="M330 202V382" stroke="#64748B" stroke-width="2"/>
+  <path d="M330 292H358" stroke="#64748B" stroke-width="2"/>
+  <path d="M358 292L346 284V300L358 292Z" fill="#64748B"/>
+
+  <rect x="370" y="178" width="220" height="56" rx="8" fill="#082F49" stroke="#38BDF8"/>
+  <text x="392" y="202" fill="#E0F2FE" font-family="Arial, sans-serif" font-size="14" font-weight="700">Freshness + validation</text>
+  <text x="392" y="222" fill="#BAE6FD" font-family="Arial, sans-serif" font-size="12">stale, missing, sample, private fields</text>
+
+  <rect x="370" y="252" width="220" height="86" rx="8" fill="#111827" stroke="#475569"/>
+  <text x="392" y="278" fill="#F8FAFC" font-family="Arial, sans-serif" font-size="14" font-weight="700">Candidate ranking</text>
+  <text x="392" y="301" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="12">release evidence</text>
+  <text x="392" y="319" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="12">funnel dropoff, search, planned assets</text>
+
+  <rect x="370" y="356" width="220" height="50" rx="8" fill="#052E2B" stroke="#2DD4BF"/>
+  <text x="392" y="386" fill="#CCFBF1" font-family="Arial, sans-serif" font-size="14" font-weight="700">Outcome memory</text>
+
+  <path d="M604 292H656" stroke="#64748B" stroke-width="2"/>
+  <path d="M656 292L644 284V300L656 292Z" fill="#64748B"/>
+
+  <g font-family="Arial, sans-serif" font-size="13">
+    <rect x="674" y="168" width="224" height="44" rx="7" fill="#172554" stroke="#60A5FA"/>
+    <text x="694" y="196" fill="#DBEAFE" font-weight="700">Daily plan</text>
+    <rect x="674" y="224" width="224" height="44" rx="7" fill="#172554" stroke="#60A5FA"/>
+    <text x="694" y="252" fill="#DBEAFE" font-weight="700">Issue draft</text>
+    <rect x="674" y="280" width="224" height="44" rx="7" fill="#172554" stroke="#60A5FA"/>
+    <text x="694" y="308" fill="#DBEAFE" font-weight="700">Codex-ready prompt</text>
+    <rect x="674" y="336" width="224" height="44" rx="7" fill="#134E4A" stroke="#2DD4BF"/>
+    <text x="694" y="364" fill="#CCFBF1" font-weight="700">Release brief</text>
+    <rect x="674" y="392" width="224" height="44" rx="7" fill="#111827" stroke="#475569"/>
+    <text x="694" y="420" fill="#E2E8F0" font-weight="700">Recorded outcome</text>
+  </g>
+
+  <rect x="54" y="446" width="844" height="40" rx="7" fill="#111827" stroke="#334155"/>
+  <text x="76" y="471" fill="#A7F3D0" font-family="Arial, sans-serif" font-size="13" font-weight="700">Guardrails:</text>
+  <text x="156" y="471" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="13">local files only</text>
+  <circle cx="262" cy="466" r="3" fill="#475569"/>
+  <text x="278" y="471" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="13">privacy scan before sharing</text>
+  <circle cx="474" cy="466" r="3" fill="#475569"/>
+  <text x="490" y="471" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="13">no unverified adoption claims</text>
+  <circle cx="700" cy="466" r="3" fill="#475569"/>
+  <text x="716" y="471" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="13">Apache-2.0 OSS</text>
+
+  <defs>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" stroke="#1E293B" stroke-width="1"/>
+    </pattern>
+  </defs>
+</svg>

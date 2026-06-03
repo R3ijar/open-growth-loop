@@ -1,10 +1,15 @@
 # Open Growth Loop
 
+**Local-first maintainer intelligence for OSS docs, examples, package pages, and release notes.**
+
 [![CI](https://github.com/R3ijar/open-growth-loop/actions/workflows/ci.yml/badge.svg)](https://github.com/R3ijar/open-growth-loop/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB.svg)](pyproject.toml)
+[![Release: v0.1.3](https://img.shields.io/badge/release-v0.1.3-0F766E.svg)](https://github.com/R3ijar/open-growth-loop/releases/tag/v0.1.3)
 
-Local-first CLI for open-source maintainers who want **one evidence-based docs, content, or onboarding action per day** without sending project data to a hosted service.
+Turn Search Console CSVs, aggregate event CSVs, content inventory, and experiment logs into **one conservative daily maintainer action** without sending project data to a hosted service.
+
+[Quickstart](#60-second-quickstart) · [Runnable examples](examples/README.md) · [Dogfooding](docs/DOGFOODING.md) · [Release readiness](docs/RELEASE_READINESS.md) · [Changelog](CHANGELOG.md)
 
 Open Growth Loop turns Search Console exports, aggregate event CSVs, content inventory, and experiment logs into a conservative maintainer workflow:
 
@@ -12,20 +17,32 @@ Open Growth Loop turns Search Console exports, aggregate event CSVs, content inv
 local CSVs -> freshness check -> ranked candidates -> one daily plan -> issue/prompt -> release brief -> outcome memory
 ```
 
-![Open Growth Loop terminal preview](docs/assets/open-growth-loop-preview-v012.svg)
+![Open Growth Loop maintainer workflow](docs/assets/open-growth-loop-system-v013.svg)
+
+## At A Glance
+
+| Signal | Current state |
+| --- | --- |
+| Maintainer workflow | validation -> freshness -> candidates -> plan -> issue/prompt -> release brief -> outcome |
+| Runnable examples | 5 synthetic workspaces covering release evidence, funnel dropoff, aliased exports, package pages, and release notes |
+| Release readiness | `ogl release-brief` checks validation, freshness, privacy, examples, changelog, README coverage, and claim guardrails |
+| Verification | 53 tests, CI passing, privacy scan clean |
+| Privacy model | local CSVs only; aggregate events only; no hosted analytics service |
+
+## What It Produces
+
+After one local run, a maintainer has reviewable files under `outbox/`:
+
+| Output | What it is for |
+| --- | --- |
+| `latest-candidates` | See every action the planner considered and why it ranked lower or higher. |
+| `latest-plan` | One conservative daily action with Decision Trace v2 and Data Freshness. |
+| `latest-prompt` | A focused Codex-ready prompt for the next reviewable change. |
+| `latest-issue-draft` | A local GitHub issue draft that can be reviewed before posting. |
+| `latest-release-brief` | Release-readiness report with validation, freshness, privacy, examples, changelog, and claim guardrails. |
+| `action_memory.csv` | Completed work and later outcomes that shape future local ranking. |
 
 The tool is intentionally generic. It does not know about any one product, private app, customer database, or specialized domain. It is useful for projects that maintain docs, examples, changelogs, educational pages, package pages, or project websites and want to decide what to improve next from public/search signals and privacy-safe event aggregates.
-
-## What You Get
-
-After one local run, a maintainer gets:
-
-- a freshness report that says whether the local evidence is recent enough to trust
-- a ranked candidate list across release evidence, funnel issues, search opportunities, and planned docs work
-- one conservative daily plan with Decision Trace v2 explaining why it won
-- a Codex-ready prompt and a reviewable GitHub issue draft
-- local action memory so completed work and later outcomes shape future ranking
-- a release-readiness brief before tagging releases or updating public application text
 
 ## v0.1.3 Highlights
 
