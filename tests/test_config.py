@@ -55,7 +55,8 @@ class ConfigTests(unittest.TestCase):
                 "weak_cta_rate = 0.03\n"
                 "review_days = 21\n"
                 "stale_planned_days = 10\n"
-                "stale_shipped_days = 30\n",
+                "stale_shipped_days = 30\n"
+                "freshness_warn_days = 12\n",
                 encoding="utf-8",
             )
 
@@ -67,6 +68,7 @@ class ConfigTests(unittest.TestCase):
         self.assertEqual(config.thresholds.review_days, 21)
         self.assertEqual(config.thresholds.stale_planned_days, 10)
         self.assertEqual(config.thresholds.stale_shipped_days, 30)
+        self.assertEqual(config.thresholds.freshness_warn_days, 12)
 
     def test_rejects_invalid_thresholds(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

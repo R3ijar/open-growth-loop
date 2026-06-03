@@ -6,6 +6,7 @@ from typing import Mapping
 
 from .candidates import Candidate, build_candidates, candidate_brief, release_evidence_checklist
 from .events import EventRollup
+from .freshness import FreshnessReport, build_freshness_report
 from .io_utils import first_existing, write_json_report, write_text_report
 
 
@@ -29,6 +30,8 @@ def build_daily_plan(
     weak_cta_rate: float = 0.05,
     memory_path: Path | None = None,
     aliases: Mapping[str, Mapping[str, str]] | None = None,
+    freshness_warn_days: int = 21,
+    today: str | None = None,
 ) -> DailyPlan:
     thresholds = {
         "minimum_impressions": minimum_impressions,
@@ -45,9 +48,15 @@ def build_daily_plan(
         memory_path=memory_path,
         aliases=aliases,
     )
+    freshness = build_freshness_report(
+        {"content_inventory": inventory_path, "search_rows": search_rows_path, "events": events_path},
+        aliases=aliases,
+        warn_after_days=freshness_warn_days,
+        today=today,
+    )
     if candidates:
         selected = candidates[0]
-        return _plan_from_candidate(selected, candidates[1:], thresholds)
+        return _plan_from_candidate(selected, candidates[1:], thresholds, freshness)
 
     return DailyPlan(
         action_type="wait_for_data",
@@ -68,6 +77,7 @@ def build_daily_plan(
             thresholds,
             [],
             None,
+            freshness,
         ),
     )
 
@@ -103,7 +113,7 @@ def best_funnel_dropoff(rollups: list[EventRollup], minimum_views: int, weak_cta
     return sorted(candidates, key=lambda item: (item.conversions == 0, item.views), reverse=True)[0]
 
 
-def _plan_from_candidate(candidate: Candidate, alternatives: list[Candidate], thresholds: dict[str, object]) -> DailyPlan:
+def _plan_from_candidate(candidate: Candidate, alternatives: list[Candidate], thresholds: dict[str, object], freshness: FreshnessReport) -> DailyPlan:
     present_sources = {candidate.source, *(item.source for item in alternatives)}
     skipped_rules = _missing_rule_summaries(present_sources, thresholds, before_priority=candidate.priority)
     return DailyPlan(
@@ -121,6 +131,7 @@ def _plan_from_candidate(candidate: Candidate, alternatives: list[Candidate], th
             thresholds,
             alternatives[:5],
             candidate,
+            freshness,
         ),
     )
 
@@ -181,6 +192,17 @@ def render_plan_markdown(plan: DailyPlan) -> str:
         if audit_notes:
             lines.extend(["", "### Audit Notes", ""])
             lines.extend(f"- {item}" for item in audit_notes if str(item).strip())
+    freshness = plan.evidence.get("freshness") if isinstance(plan.evidence, dict) else None
+    if isinstance(freshness, dict):
+        lines.extend(["", "## Data Freshness", ""])
+        lines.append(f"Status: {'ok' if freshness.get('ok') else 'warnings'}")
+        warnings = freshness.get("warnings", [])
+        if warnings:
+            lines.append("")
+            lines.extend(f"- {item}" for item in warnings if str(item).strip())
+        else:
+            lines.append("")
+            lines.append("- No stale data warnings for the inputs used by this plan.")
     lines.extend(["", "## Evidence", "", "```json"])
     import json
 
@@ -198,6 +220,7 @@ def _with_decision(
     thresholds: dict[str, object],
     alternatives: list[Candidate],
     selected: Candidate | None,
+    freshness: FreshnessReport,
 ) -> dict[str, object]:
     payload = dict(evidence)
     payload["decision"] = {
@@ -211,6 +234,7 @@ def _with_decision(
         "comparison": [_candidate_comparison(item, selected, index + 2, thresholds) for index, item in enumerate(alternatives)],
         "audit_notes": _audit_notes(selected, skipped_rules),
     }
+    payload["freshness"] = asdict(freshness)
     return payload
 
 

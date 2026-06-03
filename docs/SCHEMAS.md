@@ -82,9 +82,10 @@ weak_cta_rate = 0.05
 review_days = 14
 stale_planned_days = 14
 stale_shipped_days = 21
+freshness_warn_days = 21
 ```
 
-`weak_cta_rate` controls the funnel-dropoff rule. The command-line flags still override config values for one-off runs.
+`weak_cta_rate` controls the funnel-dropoff rule. `freshness_warn_days` controls when real local CSV inputs are treated as stale evidence. The command-line flags still override config values for one-off runs.
 
 ## Action Memory
 

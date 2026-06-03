@@ -65,3 +65,7 @@ Implemented `ogl issue-drafts` so the latest daily plan can become a reviewable 
 ### Add Decision Trace V2
 
 Implemented richer plan traces with selected winner metadata, ranked alternatives, losing reasons, threshold notes, blocked follow-ups, and local action-memory notes.
+
+### Add Data Freshness V1
+
+Implemented `ogl freshness` and embedded plan freshness checks so real local CSV inputs can warn when they are stale, empty, missing, future-dated, or still sample data.

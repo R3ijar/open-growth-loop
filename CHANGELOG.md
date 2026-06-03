@@ -4,14 +4,18 @@ All notable changes to Open Growth Loop are documented here.
 
 ## Unreleased
 
+## 0.1.2 - 2026-06-03
+
 ### Added
 
+- Data Freshness v1 with `ogl freshness` and embedded plan freshness warnings for stale, empty, missing, future-dated, or sample local CSV inputs.
 - Local `ogl issue-drafts` command that turns the latest plan into a reviewable Markdown GitHub issue draft without requiring GitHub auth.
 - Decision Trace v2 in generated plans, including winner metadata, ranked alternatives, losing reasons, thresholds, blocked state, and memory notes.
+- README landing-page polish for a clearer maintainer-tool presentation.
 
 ### Fixed
 
-- Aligned package `__version__` metadata with the published `0.1.1` release.
+- Aligned package `__version__` and project metadata with the published `0.1.2` release.
 
 ## 0.1.1 - 2026-06-03
 

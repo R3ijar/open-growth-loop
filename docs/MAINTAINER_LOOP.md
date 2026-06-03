@@ -14,9 +14,10 @@ ogl import-events --source exports/events.csv --output data/events.csv
 
 ```bash
 ogl validate --workspace .
+ogl freshness --workspace .
 ```
 
-Validation should pass before the planner is trusted.
+Validation should pass before the planner is trusted. Freshness should be reviewed when using real data exports, because old search or event data can make a technically valid recommendation less useful.
 
 ## 3. Generate One Plan
 
@@ -28,7 +29,7 @@ ogl plan --workspace .
 
 The candidate report shows all ranked actions considered by the planner. The planner still chooses one action. That is intentional. Maintainers need less thrash, not a queue of speculative rewrites.
 
-The plan includes Decision Trace v2 under `evidence.decision`. Use it to audit the selected winner, competing alternatives, why alternatives lost, threshold notes, blocked follow-ups, and action-memory adjustments before doing the work.
+The plan includes Decision Trace v2 under `evidence.decision`. Use it to audit the selected winner, competing alternatives, why alternatives lost, threshold notes, blocked follow-ups, and action-memory adjustments before doing the work. It also includes `evidence.freshness` so stale inputs are visible in the same plan.
 
 If the plan is `release_evidence`, verify the staged asset before creating another page or example:
 

@@ -24,6 +24,7 @@ The maintainer wants one conservative next action, not a long speculative conten
 
 ```bash
 python -m open_growth_loop --workspace . validate
+python -m open_growth_loop --workspace . freshness
 ```
 
 Expected shape:
@@ -42,7 +43,7 @@ Expected shape:
 }
 ```
 
-Validation checks required CSV headers and rejects private-looking event columns.
+Validation checks required CSV headers and rejects private-looking event columns. Freshness reports whether real local CSV inputs are recent enough to trust. The bundled `.example.csv` files are marked as sample data instead of stale real evidence.
 
 ## 2. Build A Query Backlog
 
@@ -108,7 +109,7 @@ With the sample data, the planner chooses the staged checklist first:
 
 That is intentional. Staged work should be verified before starting another speculative docs asset.
 
-The generated plan also includes Decision Trace v2. In Markdown, this appears as a candidate comparison showing why lower-ranked actions lost. In JSON, `evidence.decision.winner` records the selected action and `evidence.decision.comparison` records ranked alternatives, losing reasons, threshold notes, blocked state, and memory notes.
+The generated plan also includes Decision Trace v2 and Data Freshness. In Markdown, this appears as a candidate comparison and a freshness section. In JSON, `evidence.decision.winner` records the selected action, `evidence.decision.comparison` records ranked alternatives, and `evidence.freshness` records stale-data warnings.
 
 ## 4. Generate A Codex Prompt
 

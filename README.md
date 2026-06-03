@@ -9,18 +9,35 @@ Local-first CLI for open-source maintainers who want **one evidence-based docs, 
 Open Growth Loop turns Search Console exports, aggregate event CSVs, content inventory, and experiment logs into a conservative maintainer workflow:
 
 ```text
-local CSVs -> ranked candidates -> one daily plan -> completed action -> outcome memory
+local CSVs -> freshness check -> ranked candidates -> one daily plan -> issue/prompt -> outcome memory
 ```
 
 ![Open Growth Loop terminal preview](docs/assets/open-growth-loop-preview.svg)
 
 The tool is intentionally generic. It does not know about any one product, private app, customer database, or specialized domain. It is useful for projects that maintain docs, examples, changelogs, educational pages, package pages, or project websites and want to decide what to improve next from public/search signals and privacy-safe event aggregates.
 
+## What You Get
+
+After one local run, a maintainer gets:
+
+- a freshness report that says whether the local evidence is recent enough to trust
+- a ranked candidate list across release evidence, funnel issues, search opportunities, and planned docs work
+- one conservative daily plan with Decision Trace v2 explaining why it won
+- a Codex-ready prompt and a reviewable GitHub issue draft
+- local action memory so completed work and later outcomes shape future ranking
+
+## v0.1.2 Highlights
+
+- **Data Freshness v1:** warns when real local CSV inputs are stale, empty, missing, future-dated, or only sample data.
+- **Decision Trace v2:** explains the selected winner, ranked alternatives, losing reasons, thresholds, blocked state, and memory notes.
+- **Local Issue Drafts:** turns the latest plan into reviewable Markdown without creating GitHub issues automatically.
+
 ## Why Maintainers Use It
 
 | Maintainer problem | What Open Growth Loop does |
 | --- | --- |
 | Search queries, website events, and content ideas live in different places. | Reads simple local CSVs and builds one ranked candidate list. |
+| Old exports can make recommendations misleading. | Reports data freshness before and inside the generated plan. |
 | It is easy to start new docs before shipping staged work. | Prioritizes public release evidence before speculative new pages. |
 | Small samples can make every experiment look important. | Marks weak evidence as insufficient instead of claiming success. |
 | Assistants need focused tasks, not vague growth goals. | Writes one Codex-ready prompt from the selected daily plan. |
@@ -36,6 +53,7 @@ python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -e .
 python -m open_growth_loop --workspace . validate
+python -m open_growth_loop --workspace . freshness
 python -m open_growth_loop --workspace . candidates
 python -m open_growth_loop --workspace . plan
 python -m open_growth_loop --workspace . prompt
@@ -63,6 +81,7 @@ Example plan output:
 
 - `ogl init` creates the local `data/` files for a project.
 - `ogl validate` checks that CSV inputs are complete and privacy-safe.
+- `ogl freshness` reports whether real local CSV inputs are recent enough to trust.
 - `ogl candidates` writes all ranked action candidates considered by the planner.
 - `ogl query-backlog` ranks Search Console rows into maintenance opportunities.
 - `ogl plan` chooses one daily action using conservative rules.
@@ -89,6 +108,7 @@ Open Growth Loop reads:
 It writes reviewable Markdown/JSON files under `outbox/`:
 
 - a ranked query backlog
+- a data freshness report
 - one daily action plan
 - a decision trace with the winner, alternatives, losing reasons, thresholds, and memory notes
 - an experiment review
@@ -147,6 +167,12 @@ Validate the local workspace:
 
 ```bash
 ogl validate --workspace .
+```
+
+Check whether real local inputs are fresh enough to trust:
+
+```bash
+ogl freshness --workspace .
 ```
 
 Run the sample planner:
@@ -281,11 +307,12 @@ weak_cta_rate = 0.05
 review_days = 14
 stale_planned_days = 14
 stale_shipped_days = 21
+freshness_warn_days = 21
 ```
 
 Command-line flags such as `--minimum-impressions`, `--minimum-views`, and `--weak-cta-rate` override the config for a single run.
 
-`weekly-review` uses `stale_planned_days` and `stale_shipped_days` to flag work that has waited too long without artifact evidence or review readiness.
+`weekly-review` uses `stale_planned_days` and `stale_shipped_days` to flag work that has waited too long without artifact evidence or review readiness. `freshness` and `plan` use `freshness_warn_days` to warn when real local inputs are older than the trusted evidence window.
 
 ## Daily Loop
 
@@ -293,6 +320,7 @@ Recommended maintainer workflow:
 
 ```bash
 ogl import-events --source path\to\aggregate-events.csv --output data\events.csv
+ogl freshness --workspace .
 ogl query-backlog --workspace .
 ogl plan --workspace .
 ogl issue-drafts --workspace .
@@ -326,9 +354,13 @@ Action memory gently adjusts candidate scores. Completed actions without outcome
 
 Generated plans include a Decision Trace v2 block. It records the selected winner, ranked alternatives, why each alternative lost, thresholds used, blocked follow-ups, and memory adjustments. The trace is meant to be auditable by maintainers before they hand work to Codex or open an issue.
 
+Generated plans also include a Data Freshness block. Sample `.example.csv` files are marked as sample data, while real local CSVs are checked by latest date or file modification time. Stale data is a warning, not a failure, so maintainers can still decide whether the signal is usable.
+
 ## Project Status
 
-This is an early open-source extraction of a local growth-operations loop. It is ready for small CSV-driven workflows and intended to grow through issues, examples, and maintainer feedback.
+Current release: v0.1.2.
+
+This is an early open-source extraction of a local growth-operations loop. It is ready for small CSV-driven maintainer workflows and intended to grow through issues, examples, and contributor feedback.
 
 ## License
 

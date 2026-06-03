@@ -18,6 +18,7 @@
 - Local GitHub issue draft export as Markdown.
 - Configurable stale-work windows.
 - Decision Trace v2 for competing candidates.
+- Data Freshness v1 for local CSV inputs.
 
 ## 0.2
 

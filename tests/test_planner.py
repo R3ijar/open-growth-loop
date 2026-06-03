@@ -47,6 +47,7 @@ class PlannerTests(unittest.TestCase):
         self.assertEqual(plan.evidence["decision"]["winner"]["source"], "release_evidence")
         self.assertTrue(plan.evidence["decision"]["comparison"])
         self.assertTrue(any("priority" in reason for reason in plan.evidence["decision"]["comparison"][0]["lost_because"]))
+        self.assertIn("freshness", plan.evidence)
 
     def test_planner_uses_funnel_before_search_when_no_staged_item(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -151,6 +152,20 @@ class PlannerTests(unittest.TestCase):
         self.assertIn("### Candidate Comparison", markdown)
         self.assertIn("lost because", markdown)
         self.assertIn("### Audit Notes", markdown)
+        self.assertIn("## Data Freshness", markdown)
+
+    def test_plan_records_stale_freshness_warning(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            paths = write_defaults(
+                Path(temp_dir),
+                "status,type,asset,primary_query,cta,owner_note\n"
+                "staged,guide,/docs/staged,staged query,Try it,Needs release\n",
+            )
+
+            plan = build_daily_plan(*paths, freshness_warn_days=7, today="2026-06-03")
+
+        self.assertFalse(plan.evidence["freshness"]["ok"])
+        self.assertTrue(any("events" in warning for warning in plan.evidence["freshness"]["warnings"]))
 
     def test_decision_trace_explains_memory_cooldown(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

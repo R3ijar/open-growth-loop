@@ -9,6 +9,7 @@ from .candidates import build_candidates, render_candidates_markdown
 from .config import GrowthConfig, load_config
 from .events import import_aggregate_events
 from .experiments import render_reviews_markdown, review_experiments, ship_experiment, track_plan
+from .freshness import build_freshness_report, write_freshness_reports
 from .io_utils import dated_report_path, first_existing, read_json, write_json_report, write_text_report
 from .issue_drafts import issue_title, write_issue_draft
 from .memory import record_completion, record_outcome
@@ -34,6 +35,10 @@ def main() -> None:
 
     validate = subparsers.add_parser("validate", help="Validate local CSV inputs and privacy-safe headers.")
     add_workspace_argument(validate)
+
+    freshness = subparsers.add_parser("freshness", help="Report whether local CSV inputs are fresh enough to trust.")
+    add_workspace_argument(freshness)
+    freshness.add_argument("--warn-after-days", type=int, default=None, help="Warn when real input data is older than this many days.")
 
     plan = subparsers.add_parser("plan", help="Build the next daily growth-loop plan.")
     add_workspace_argument(plan)
@@ -140,6 +145,8 @@ def main() -> None:
         run_init(args, workspace)
     elif args.command == "validate":
         run_validate(workspace, config)
+    elif args.command == "freshness":
+        run_freshness(args, workspace, config)
     elif args.command == "plan":
         run_plan(args, workspace, config)
     elif args.command == "candidates":
@@ -202,6 +209,33 @@ def run_validate(workspace: Path, config: GrowthConfig) -> None:
         raise SystemExit(1)
 
 
+def run_freshness(args: argparse.Namespace, workspace: Path, config: GrowthConfig) -> None:
+    inventory, search_rows, events = default_data_paths(workspace)
+    data_dir = workspace / "data"
+    paths = {
+        "content_inventory": inventory,
+        "search_rows": search_rows,
+        "events": events,
+        "experiments": first_existing([data_dir / "experiments.csv", data_dir / "experiments.example.csv"]),
+    }
+    warn_after_days = args.warn_after_days if args.warn_after_days is not None else config.thresholds.freshness_warn_days
+    report = build_freshness_report(paths, config.schema_aliases, warn_after_days=warn_after_days)
+    md_path, md_history, json_path, json_history = write_freshness_reports(report, workspace / "outbox" / "freshness")
+    print(
+        json.dumps(
+            {
+                "ok": report.ok,
+                "warnings": len(report.warnings),
+                "markdown": str(md_path),
+                "markdown_history": str(md_history),
+                "json": str(json_path),
+                "json_history": str(json_history),
+            },
+            indent=2,
+        )
+    )
+
+
 def run_plan(args: argparse.Namespace, workspace: Path, config: GrowthConfig) -> None:
     default_inventory, default_search_rows, default_events = default_data_paths(workspace)
     inventory = Path(args.inventory) if args.inventory else default_inventory
@@ -219,6 +253,7 @@ def run_plan(args: argparse.Namespace, workspace: Path, config: GrowthConfig) ->
         weak_cta_rate=weak_cta_rate,
         memory_path=default_memory_path(workspace),
         aliases=config.schema_aliases,
+        freshness_warn_days=config.thresholds.freshness_warn_days,
     )
     md_path, json_path = write_plan_reports(plan, workspace / "outbox" / "plans")
     print(

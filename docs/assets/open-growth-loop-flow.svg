@@ -1,6 +1,6 @@
 <svg width="960" height="220" viewBox="0 0 960 220" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
   <title id="title">Open Growth Loop workflow</title>
-  <desc id="desc">Local CSV inputs feed ranked candidates, one daily plan, a focused prompt, completed action recording, outcome recording, and local action memory.</desc>
+  <desc id="desc">Local CSV inputs feed a freshness check, ranked candidates, one daily plan, a focused prompt or issue draft, completed action recording, outcome recording, and local action memory.</desc>
   <rect width="960" height="220" rx="16" fill="#0D1117"/>
   <rect x="1" y="1" width="958" height="218" rx="15" stroke="#30363D" stroke-width="2"/>
   <defs>
@@ -11,8 +11,8 @@
   <rect x="40" y="38" width="156" height="104" rx="10" fill="#111827" stroke="#334155"/>
   <text x="62" y="66" fill="#E0F2FE" font-family="Arial, sans-serif" font-size="13" font-weight="700">1. Local signals</text>
   <text x="62" y="92" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="13">Search CSV</text>
-  <text x="62" y="113" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="13">Aggregate events</text>
-  <text x="62" y="134" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="13">Content inventory</text>
+  <text x="62" y="113" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="13">Events + inventory</text>
+  <text x="62" y="134" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="13">Freshness status</text>
 
   <rect x="230" y="38" width="156" height="104" rx="10" fill="#0B1220" stroke="#38BDF8"/>
   <text x="252" y="66" fill="#E0F2FE" font-family="Arial, sans-serif" font-size="13" font-weight="700">2. Rank candidates</text>
@@ -23,13 +23,13 @@
   <rect x="420" y="38" width="156" height="104" rx="10" fill="#111827" stroke="#38BDF8"/>
   <text x="442" y="66" fill="#E0F2FE" font-family="Arial, sans-serif" font-size="13" font-weight="700">3. Pick one plan</text>
   <text x="442" y="94" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="13">one focused action</text>
-  <text x="442" y="115" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="13">decision evidence</text>
-  <text x="442" y="136" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="13">ranked alternatives</text>
+  <text x="442" y="115" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="13">Decision Trace v2</text>
+  <text x="442" y="136" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="13">freshness warnings</text>
 
   <rect x="610" y="38" width="156" height="104" rx="10" fill="#0B1220" stroke="#34D399"/>
   <text x="632" y="66" fill="#DCFCE7" font-family="Arial, sans-serif" font-size="13" font-weight="700">4. Do the work</text>
   <text x="632" y="94" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="13">Codex prompt</text>
-  <text x="632" y="115" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="13">complete action</text>
+  <text x="632" y="115" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="13">issue draft</text>
   <text x="632" y="136" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="13">record artifact</text>
 
   <rect x="800" y="38" width="120" height="104" rx="10" fill="#172554" stroke="#93C5FD"/>
