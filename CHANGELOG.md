@@ -4,6 +4,8 @@ All notable changes to Open Growth Loop are documented here.
 
 ## Unreleased
 
+## 0.1.1 - 2026-06-03
+
 ### Added
 
 - Stale work detection in weekly reviews for planned work waiting too long, shipped work missing artifacts, shipped work ready for review, and shipped work waiting too long for review readiness.
