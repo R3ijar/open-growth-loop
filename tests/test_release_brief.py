@@ -5,7 +5,11 @@ import unittest
 from pathlib import Path
 
 from open_growth_loop.config import load_config
-from open_growth_loop.release_brief import build_release_brief, render_release_brief_markdown, write_release_brief_reports
+from open_growth_loop.release_brief import (
+    build_release_brief,
+    render_release_brief_markdown,
+    write_release_brief_reports,
+)
 
 
 class ReleaseBriefTests(unittest.TestCase):

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Mapping
 
 try:
     import tomllib
@@ -10,7 +10,7 @@ except ModuleNotFoundError:  # pragma: no cover - exercised on Python 3.10
     import tomli as tomllib
 
 
-SCHEMA_NAMES = {"content_inventory", "search_rows", "events", "experiments"}
+SCHEMA_NAMES = {"content_inventory", "search_rows", "events", "experiments", "action_memory"}
 SchemaAliases = Mapping[str, Mapping[str, str]]
 
 

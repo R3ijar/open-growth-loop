@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Mapping
 
 try:
     import tomllib
@@ -11,7 +11,13 @@ except ModuleNotFoundError:  # pragma: no cover - Python 3.10 compatibility
 
 from .config import GrowthConfig, load_config
 from .freshness import build_freshness_report
-from .io_utils import first_existing, read_json, today_iso, write_json_report, write_text_report
+from .io_utils import (
+    first_existing,
+    read_json,
+    today_iso,
+    write_json_report,
+    write_text_report,
+)
 from .planner import build_daily_plan, default_data_paths, default_memory_path
 from .privacy import scan_privacy
 from .reporting import key_value_table, markdown_table, status_label

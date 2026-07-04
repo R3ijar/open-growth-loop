@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import csv
 import json
+from collections.abc import Iterable, Mapping
 from datetime import date, timedelta
 from pathlib import Path
-from typing import Iterable, Mapping
 
 from .config import apply_column_aliases
 

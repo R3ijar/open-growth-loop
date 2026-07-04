@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Mapping
 
 from .config import apply_header_aliases
 from .io_utils import parse_int, read_csv_header, read_csv_rows, write_csv_rows

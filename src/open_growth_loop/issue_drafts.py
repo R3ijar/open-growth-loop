@@ -1,13 +1,12 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable
 
 from .events import PRIVATE_COLUMN_HINTS
 from .io_utils import write_text_report
 from .planner import DailyPlan
 from .reporting import key_value_table
-
 
 PRIVATE_EVIDENCE_HINTS = PRIVATE_COLUMN_HINTS | {
     "api_key",

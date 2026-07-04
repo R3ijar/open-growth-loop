@@ -7,7 +7,6 @@ from pathlib import Path
 
 from .events import PRIVATE_COLUMN_HINTS
 
-
 DEFAULT_EXCLUDED_DIRS = {".git", ".venv", "__pycache__", ".pytest_cache", "build", "dist", "outbox", "tests"}
 TEXT_EXTENSIONS = {".csv", ".md", ".toml", ".json", ".txt", ".yml", ".yaml"}
 EMAIL_RE = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b")

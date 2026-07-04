@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from collections import Counter
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
-from typing import Mapping
 
 from .inventory import read_inventory
 from .io_utils import read_csv_rows, today_iso

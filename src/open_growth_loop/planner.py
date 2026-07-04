@@ -1,15 +1,21 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Mapping
 
-from .candidates import Candidate, build_candidates, candidate_brief, release_evidence_checklist
-from .events import EventRollup
+from .candidates import Candidate, build_candidates, candidate_brief
 from .freshness import FreshnessReport, build_freshness_report
 from .io_utils import first_existing, write_json_report, write_text_report
-from .reporting import collapsible_section, compact_join, key_value_table, markdown_table, status_label, task_list
+from .reporting import (
+    collapsible_section,
+    compact_join,
+    key_value_table,
+    markdown_table,
+    status_label,
+    task_list,
+)
 
 
 @dataclass(frozen=True)
@@ -102,17 +108,6 @@ def default_data_paths(workspace: Path) -> tuple[Path, Path, Path]:
 
 def default_memory_path(workspace: Path) -> Path:
     return workspace / "data" / "action_memory.csv"
-
-
-def best_funnel_dropoff(rollups: list[EventRollup], minimum_views: int, weak_cta_rate: float = 0.05) -> EventRollup | None:
-    candidates = [
-        rollup
-        for rollup in rollups
-        if rollup.views >= minimum_views and (rollup.cta_rate < weak_cta_rate or rollup.conversions == 0)
-    ]
-    if not candidates:
-        return None
-    return sorted(candidates, key=lambda item: (item.conversions == 0, item.views), reverse=True)[0]
 
 
 def _plan_from_candidate(candidate: Candidate, alternatives: list[Candidate], thresholds: dict[str, object], freshness: FreshnessReport) -> DailyPlan:

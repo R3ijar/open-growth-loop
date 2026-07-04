@@ -6,7 +6,13 @@ from pathlib import Path
 
 from open_growth_loop.io_utils import write_json_report, write_text_report
 from open_growth_loop.planner import DailyPlan, render_plan_markdown, write_plan_reports
-from open_growth_loop.report_index import build_report_index, render_report_index, report_index_payload, write_report_index, write_report_index_json
+from open_growth_loop.report_index import (
+    build_report_index,
+    render_report_index,
+    report_index_payload,
+    write_report_index,
+    write_report_index_json,
+)
 
 
 class ReportHistoryTests(unittest.TestCase):

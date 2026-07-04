@@ -7,7 +7,6 @@ from open_growth_loop.config import load_config
 from open_growth_loop.planner import build_daily_plan, default_data_paths
 from open_growth_loop.workspace import validate_workspace
 
-
 ROOT = Path(__file__).resolve().parents[1]
 
 

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Mapping
 
 from .events import event_baseline, read_event_rollups
 from .io_utils import future_iso, read_csv_rows, today_iso, write_csv_rows

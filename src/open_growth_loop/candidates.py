@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Iterable, Mapping
 from dataclasses import asdict, dataclass, replace
 from pathlib import Path
-from typing import Iterable, Mapping
 
 from .events import EventRollup, read_event_rollups
 from .inventory import ContentItem, read_inventory

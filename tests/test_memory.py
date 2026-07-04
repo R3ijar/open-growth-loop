@@ -5,7 +5,11 @@ import unittest
 from pathlib import Path
 
 from open_growth_loop.io_utils import read_csv_rows
-from open_growth_loop.memory import read_action_memory, record_completion, record_outcome
+from open_growth_loop.memory import (
+    read_action_memory,
+    record_completion,
+    record_outcome,
+)
 
 
 class MemoryTests(unittest.TestCase):

@@ -8,7 +8,7 @@ from .config import GrowthConfig, apply_header_aliases
 from .events import PRIVATE_COLUMN_HINTS, validate_event_columns
 from .experiments import FIELDS as EXPERIMENT_FIELDS
 from .experiments import REQUIRED_FIELDS as EXPERIMENT_REQUIRED_FIELDS
-from .io_utils import ensure_parent, first_existing, write_csv_rows
+from .io_utils import first_existing, write_csv_rows
 from .memory import FIELDS as ACTION_MEMORY_FIELDS
 
 CONTENT_INVENTORY_FIELDS = ["status", "type", "asset", "primary_query", "cta", "owner_note"]

@@ -4,7 +4,11 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from open_growth_loop.issue_drafts import issue_title, render_issue_draft, write_issue_draft
+from open_growth_loop.issue_drafts import (
+    issue_title,
+    render_issue_draft,
+    write_issue_draft,
+)
 from open_growth_loop.planner import DailyPlan
 
 

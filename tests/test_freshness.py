@@ -4,7 +4,11 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from open_growth_loop.freshness import build_freshness_report, render_freshness_markdown, write_freshness_reports
+from open_growth_loop.freshness import (
+    build_freshness_report,
+    render_freshness_markdown,
+    write_freshness_reports,
+)
 
 
 class FreshnessTests(unittest.TestCase):
@@ -61,6 +65,23 @@ class FreshnessTests(unittest.TestCase):
 
         self.assertTrue(report.ok)
         self.assertEqual(report.checks[0].latest_date, "2026-06-01")
+
+    def test_mtime_inputs_are_current_when_modified_after_check_date(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            inventory = root / "content_inventory.csv"
+            inventory.write_text(
+                "status,type,asset,primary_query,cta,owner_note\n"
+                "planned,docs,/docs/setup,setup docs,Try setup,Planned page\n",
+                encoding="utf-8",
+            )
+
+            report = build_freshness_report({"content_inventory": inventory}, warn_after_days=14, today="2020-01-01")
+
+        self.assertTrue(report.ok)
+        self.assertEqual(report.checks[0].status, "fresh")
+        self.assertEqual(report.checks[0].age_days, 0)
+        self.assertIn("modified after the check date", report.checks[0].reason)
 
     def test_write_freshness_reports_writes_latest_and_history(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

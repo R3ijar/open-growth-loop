@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import unittest
 
-from open_growth_loop.planner import DailyPlan, release_evidence_checklist
+from open_growth_loop.candidates import release_evidence_checklist
+from open_growth_loop.planner import DailyPlan
 from open_growth_loop.prompts import render_codex_prompt
 
 

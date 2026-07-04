@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Mapping
 
 from .reporting import key_value_table, markdown_table
 from .search import SearchOpportunity, rank_search_opportunities, read_search_rows

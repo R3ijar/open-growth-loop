@@ -1,13 +1,12 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass
 from datetime import date, datetime
 from pathlib import Path
-from typing import Mapping
 
 from .io_utils import read_csv_rows, write_json_report, write_text_report
 from .reporting import key_value_table, markdown_table, status_label
-
 
 DATE_FIELDS = {
     "events": ["date"],
@@ -186,6 +185,19 @@ def _dated_check(name: str, display_path: str, source: str, latest: date, warn_a
 
 def _mtime_check(name: str, display_path: str, path: Path, warn_after_days: int, today: date) -> FreshnessCheck:
     modified = datetime.fromtimestamp(path.stat().st_mtime).date()
+    if modified > today:
+        # A modification time after the check date only means the file is
+        # current relative to a historical reference date; future_dated is
+        # reserved for dates parsed from data rows.
+        return FreshnessCheck(
+            name,
+            display_path,
+            "fresh",
+            "file_modified",
+            modified.isoformat(),
+            0,
+            f"File was modified after the check date {today.isoformat()}; treating it as current.",
+        )
     return _dated_check(name, display_path, "file_modified", modified, warn_after_days, today)
 
 
