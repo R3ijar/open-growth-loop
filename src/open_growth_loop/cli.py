@@ -5,21 +5,43 @@ import json
 from dataclasses import asdict
 from pathlib import Path
 
+from .audit import build_repo_audit, render_audit_markdown, write_audit_reports
 from .candidates import build_candidates, render_candidates_markdown
 from .config import GrowthConfig, load_config
 from .doctor import build_doctor_report, write_doctor_reports
 from .events import import_aggregate_events
-from .experiments import render_reviews_markdown, review_experiments, ship_experiment, track_plan
+from .experiments import (
+    render_reviews_markdown,
+    review_experiments,
+    ship_experiment,
+    track_plan,
+)
 from .freshness import build_freshness_report, write_freshness_reports
-from .io_utils import dated_report_path, first_existing, read_json, write_json_report, write_text_report
+from .io_utils import (
+    dated_report_path,
+    first_existing,
+    read_json,
+    write_json_report,
+    write_text_report,
+)
 from .issue_drafts import issue_title, write_issue_draft
 from .memory import record_completion, record_outcome
-from .planner import DailyPlan, build_daily_plan, default_data_paths, default_memory_path, write_plan_reports
+from .planner import (
+    DailyPlan,
+    build_daily_plan,
+    default_data_paths,
+    default_memory_path,
+    write_plan_reports,
+)
 from .privacy import render_privacy_scan_markdown, scan_privacy
 from .prompts import render_codex_prompt
 from .query_backlog import build_query_backlog, render_query_backlog
 from .release_brief import build_release_brief, write_release_brief_reports
-from .report_index import build_report_index, write_report_index, write_report_index_json
+from .report_index import (
+    build_report_index,
+    write_report_index,
+    write_report_index_json,
+)
 from .weekly import build_weekly_review, render_weekly_review
 from .workspace import init_workspace, validate_workspace
 
@@ -38,6 +60,12 @@ def main() -> None:
 
     validate = subparsers.add_parser("validate", help="Validate local CSV inputs and privacy-safe headers.")
     add_workspace_argument(validate)
+
+    audit = subparsers.add_parser("audit", help="Audit any repository for maintainer-readiness gaps. No CSV data needed.")
+    add_workspace_argument(audit)
+    audit.add_argument("--repo", default="", help="Repository directory to audit. Defaults to the workspace.")
+    audit.add_argument("--summary", default="", help="Append the audit Markdown to this file (for example $GITHUB_STEP_SUMMARY).")
+    audit.add_argument("--strict", action="store_true", help="Exit with status 1 when an essential check fails.")
 
     doctor = subparsers.add_parser("doctor", help="Run one-shot workspace readiness checks.")
     add_workspace_argument(doctor)
@@ -163,6 +191,8 @@ def main() -> None:
         run_init(args, workspace)
     elif args.command == "validate":
         run_validate(workspace, config)
+    elif args.command == "audit":
+        run_audit(args, workspace)
     elif args.command == "doctor":
         run_doctor(args, workspace, config)
     elif args.command == "freshness":
@@ -232,6 +262,36 @@ def run_validate(workspace: Path, config: GrowthConfig) -> None:
     result = validate_workspace(workspace, config)
     print(json.dumps(asdict(result), indent=2))
     if not result.ok:
+        raise SystemExit(1)
+
+
+def run_audit(args: argparse.Namespace, workspace: Path) -> None:
+    repo = Path(args.repo).resolve() if args.repo else workspace
+    if not repo.is_dir():
+        raise SystemExit(f"Repository directory not found: {repo}")
+    audit = build_repo_audit(repo)
+    md_path, md_history, json_path, json_history = write_audit_reports(audit, workspace / "outbox" / "audit")
+    if args.summary:
+        summary_path = Path(args.summary)
+        summary_path.parent.mkdir(parents=True, exist_ok=True)
+        with summary_path.open("a", encoding="utf-8") as handle:
+            handle.write(render_audit_markdown(audit))
+    print(
+        json.dumps(
+            {
+                "ok": audit.ok,
+                "repo": audit.repo,
+                "score": audit.score,
+                "recommended_action": asdict(audit.recommended_action) if audit.recommended_action else None,
+                "markdown": str(md_path),
+                "markdown_history": str(md_history),
+                "json": str(json_path),
+                "json_history": str(json_history),
+            },
+            indent=2,
+        )
+    )
+    if args.strict and not audit.ok:
         raise SystemExit(1)
 
 
@@ -353,6 +413,24 @@ def run_candidates(args: argparse.Namespace, workspace: Path, config: GrowthConf
     )
 
 
+def load_plan(plan_json: Path, workspace: Path) -> DailyPlan:
+    if not plan_json.exists():
+        raise SystemExit(f"Plan JSON not found: {plan_json}. Run `ogl plan --workspace {workspace}` first.")
+    try:
+        payload = read_json(plan_json)
+    except (OSError, ValueError) as exc:
+        raise SystemExit(f"Plan JSON could not be read: {plan_json} ({exc}).") from exc
+    if not isinstance(payload, dict):
+        raise SystemExit(f"Plan JSON must contain a JSON object: {plan_json}.")
+    try:
+        return DailyPlan(**payload)
+    except TypeError as exc:
+        raise SystemExit(
+            f"Plan JSON does not match the expected plan schema: {plan_json} ({exc}). "
+            f"Re-run `ogl plan --workspace {workspace}` to regenerate it."
+        ) from exc
+
+
 def run_complete(args: argparse.Namespace, workspace: Path, config: GrowthConfig) -> None:
     memory = Path(args.memory) if args.memory else default_memory_path(workspace)
     asset = args.asset.strip()
@@ -361,8 +439,7 @@ def run_complete(args: argparse.Namespace, workspace: Path, config: GrowthConfig
     note = args.note.strip()
     if not asset and not action_type:
         plan_json = Path(args.plan_json) if args.plan_json else workspace / "outbox" / "plans" / "latest-plan.json"
-        payload = read_json(plan_json)
-        plan = DailyPlan(**payload)
+        plan = load_plan(plan_json, workspace)
         asset = plan.asset
         action_type = plan.action_type
         decision = plan.evidence.get("decision") if isinstance(plan.evidence, dict) else None
@@ -414,10 +491,7 @@ def run_track_experiment(args: argparse.Namespace, workspace: Path, config: Grow
     search_rows = Path(args.search_rows) if args.search_rows else default_search_rows
     events = Path(args.events) if args.events else default_events
     plan_json = Path(args.plan_json) if args.plan_json else workspace / "outbox" / "plans" / "latest-plan.json"
-    payload = read_json(plan_json)
-    from .planner import DailyPlan
-
-    plan = DailyPlan(**payload)
+    plan = load_plan(plan_json, workspace)
     review_days = args.review_days if args.review_days is not None else config.thresholds.review_days
     row = track_plan(plan, ledger, search_rows, events, review_days, args.artifact, args.note, config.schema_aliases)
     print(json.dumps(row, indent=2))
@@ -519,9 +593,7 @@ def run_privacy_scan(args: argparse.Namespace, workspace: Path) -> None:
 
 def run_prompt(args: argparse.Namespace, workspace: Path) -> None:
     plan_json = Path(args.plan_json) if args.plan_json else workspace / "outbox" / "plans" / "latest-plan.json"
-    from .planner import DailyPlan
-
-    plan = DailyPlan(**read_json(plan_json))
+    plan = load_plan(plan_json, workspace)
     prompt = render_codex_prompt(plan)
     out_path = workspace / "outbox" / "prompts" / "latest-prompt.md"
     latest_path, history_path = write_text_report(out_path, prompt)
@@ -530,9 +602,7 @@ def run_prompt(args: argparse.Namespace, workspace: Path) -> None:
 
 def run_issue_drafts(args: argparse.Namespace, workspace: Path) -> None:
     plan_json = Path(args.plan_json) if args.plan_json else workspace / "outbox" / "plans" / "latest-plan.json"
-    if not plan_json.exists():
-        raise SystemExit(f"Plan JSON not found: {plan_json}. Run `ogl plan --workspace {workspace}` first.")
-    plan = DailyPlan(**read_json(plan_json))
+    plan = load_plan(plan_json, workspace)
     latest_path, history_path = write_issue_draft(plan, workspace / "outbox" / "issues")
     print(
         json.dumps(
@@ -672,6 +742,9 @@ def generate_demo_reports(workspace: Path, config: GrowthConfig, include_tests: 
     doctor = build_doctor_report(workspace, config, include_tests=include_tests)
     doctor_md, _, doctor_json, _ = write_doctor_reports(doctor, workspace / "outbox" / "doctor")
 
+    audit = build_repo_audit(workspace)
+    audit_md, _, audit_json, _ = write_audit_reports(audit, workspace / "outbox" / "audit")
+
     report_index = build_report_index(workspace)
     index_md, _ = write_report_index(report_index, workspace / "outbox")
     index_json, _ = write_report_index_json(report_index, workspace / "outbox")
@@ -686,6 +759,8 @@ def generate_demo_reports(workspace: Path, config: GrowthConfig, include_tests: 
         "candidates": len(candidates),
         "opportunities": len(opportunities),
         "experiment_reviews": len(reviews),
+        "audit_ok": audit.ok,
+        "audit_score_percent": audit.score["percent"],
         "report_index_available": report_index.available_count,
         "reports": {
             "freshness": str(freshness_md),
@@ -707,6 +782,8 @@ def generate_demo_reports(workspace: Path, config: GrowthConfig, include_tests: 
             "release_brief_json": str(release_json),
             "doctor": str(doctor_md),
             "doctor_json": str(doctor_json),
+            "audit": str(audit_md),
+            "audit_json": str(audit_json),
             "report_index": str(index_md),
             "report_index_json": str(index_json),
         },

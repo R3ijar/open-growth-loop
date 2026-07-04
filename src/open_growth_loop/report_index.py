@@ -41,6 +41,7 @@ class ReportIndex:
 
 
 REPORTS = [
+    ("Repo Audit", "audit/latest-audit.md", "Zero-config repository hygiene check with one recommended next action."),
     ("Doctor", "doctor/latest-doctor.md", "One-shot readiness check across validation, freshness, privacy, planning, and release review."),
     ("Plan", "plans/latest-plan.md", "The selected daily maintainer action and decision trace."),
     ("Candidates", "candidates/latest-candidates.md", "All ranked actions considered by the conservative engine."),
