@@ -4,6 +4,10 @@ All notable changes to Open Growth Loop are documented here.
 
 ## Unreleased
 
+### Added
+
+- `ogl fix` scaffolds the audit's recommended action when it is mechanical: license (with an explicit `--license mit` or `--license apache-2.0` choice), README skeleton, changelog, contributing guide, code of conduct, security policy, issue and pull request templates, and a starter CI workflow detected from the project ecosystem (Python, Node, Rust, Go). Existing files are never overwritten, `--dry-run` previews the writes, `--list` shows which checks have scaffolds, and gaps that need real judgment hand off a Codex-ready prompt instead.
+
 ## 0.2.0 - 2026-07-04
 
 ### Added

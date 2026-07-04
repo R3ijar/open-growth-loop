@@ -5,7 +5,7 @@ import json
 from dataclasses import asdict
 from pathlib import Path
 
-from .audit import build_repo_audit, render_audit_markdown, write_audit_reports
+from .audit import action_from_check, build_repo_audit, render_audit_markdown, render_audit_prompt, write_audit_reports
 from .candidates import build_candidates, render_candidates_markdown
 from .config import GrowthConfig, load_config
 from .doctor import build_doctor_report, write_doctor_reports
@@ -16,6 +16,7 @@ from .experiments import (
     ship_experiment,
     track_plan,
 )
+from .fix import LICENSE_CHOICES, FixOptions, apply_fix, fixable_check_ids
 from .freshness import build_freshness_report, write_freshness_reports
 from .io_utils import (
     dated_report_path,
@@ -66,6 +67,15 @@ def main() -> None:
     audit.add_argument("--repo", default="", help="Repository directory to audit. Defaults to the workspace.")
     audit.add_argument("--summary", default="", help="Append the audit Markdown to this file (for example $GITHUB_STEP_SUMMARY).")
     audit.add_argument("--strict", action="store_true", help="Exit with status 1 when an essential check fails.")
+
+    fix = subparsers.add_parser("fix", help="Scaffold the audit's recommended action when it is mechanically fixable.")
+    add_workspace_argument(fix)
+    fix.add_argument("--repo", default="", help="Repository directory to fix. Defaults to the workspace.")
+    fix.add_argument("--check", default="", help="Fix a specific audit check id instead of the recommended action.")
+    fix.add_argument("--license", default="", choices=["", *LICENSE_CHOICES], dest="license_id", help="License to scaffold when fixing the license check.")
+    fix.add_argument("--holder", default="", help="Copyright holder name for license scaffolds. Defaults to '<project> contributors'.")
+    fix.add_argument("--dry-run", action="store_true", help="Show what would be written without writing it.")
+    fix.add_argument("--list", action="store_true", dest="list_fixes", help="List audit checks and whether each can be scaffolded.")
 
     doctor = subparsers.add_parser("doctor", help="Run one-shot workspace readiness checks.")
     add_workspace_argument(doctor)
@@ -193,6 +203,8 @@ def main() -> None:
         run_validate(workspace, config)
     elif args.command == "audit":
         run_audit(args, workspace)
+    elif args.command == "fix":
+        run_fix(args, workspace)
     elif args.command == "doctor":
         run_doctor(args, workspace, config)
     elif args.command == "freshness":
@@ -293,6 +305,50 @@ def run_audit(args: argparse.Namespace, workspace: Path) -> None:
     )
     if args.strict and not audit.ok:
         raise SystemExit(1)
+
+
+def run_fix(args: argparse.Namespace, workspace: Path) -> None:
+    repo = Path(args.repo).resolve() if args.repo else workspace
+    if not repo.is_dir():
+        raise SystemExit(f"Repository directory not found: {repo}")
+    audit = build_repo_audit(repo)
+    by_id = {check.id: check for check in audit.checks}
+
+    if args.list_fixes:
+        fixable = set(fixable_check_ids())
+        print(
+            json.dumps(
+                [
+                    {"check": check.id, "status": check.status, "scaffold_available": check.id in fixable}
+                    for check in audit.checks
+                ],
+                indent=2,
+            )
+        )
+        return
+
+    if args.check:
+        check = by_id.get(args.check)
+        if check is None:
+            raise SystemExit(f"Unknown audit check: {args.check}. Valid ids: {', '.join(sorted(by_id))}.")
+    elif audit.recommended_action is not None:
+        check = by_id[audit.recommended_action.check_id]
+    else:
+        print(json.dumps({"check": None, "status": "none", "detail": "All audited checks pass; nothing to fix."}, indent=2))
+        return
+
+    result = apply_fix(repo, check, FixOptions(license_id=args.license_id, holder=args.holder, dry_run=args.dry_run))
+    payload: dict[str, object] = {
+        "check": result.check_id,
+        "status": result.status,
+        "detail": result.detail,
+        "files": result.files,
+    }
+    if result.status in {"manual", "blocked"}:
+        payload["prompt"] = render_audit_prompt(audit, action_from_check(check))
+    if result.status == "created":
+        payload["score_percent_after"] = build_repo_audit(repo).score["percent"]
+    print(json.dumps(payload, indent=2))
 
 
 def run_doctor(args: argparse.Namespace, workspace: Path, config: GrowthConfig) -> None:

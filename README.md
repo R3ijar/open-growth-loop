@@ -41,6 +41,15 @@ Thirty seconds later, `outbox/audit/latest-audit.md` holds a scorecard over 14 h
 
 Every audit recommends exactly **one next action**, ordered by how much each gap hurts a new visitor, with a step checklist and a Codex-ready prompt — so the next focused change is one paste away. Reports stay local; add `outbox/` to your `.gitignore` if you don't want to keep them.
 
+And when the gap is mechanical, you don't even have to write the file:
+
+```bash
+ogl fix --workspace path/to/your-repo                 # scaffold the recommended action
+ogl fix --workspace path/to/your-repo --license mit   # licenses need an explicit choice
+```
+
+`ogl fix` scaffolds missing community files, changelogs, licenses, issue/PR templates, and an ecosystem-detected starter CI workflow — with TODO markers, never overwriting anything. Checks that need real judgment (README content, docs, quickstart) hand you the Codex prompt instead. A bare repository typically goes from 0% to ~70% with fixes alone; the rest is writing worth doing yourself.
+
 ## Use It As A GitHub Action
 
 Add one workflow file and the audit runs on every push, straight into the Actions job summary:
@@ -101,6 +110,7 @@ Weak evidence is labeled insufficient instead of being spun into a win. The goal
 | Command | What it does |
 | --- | --- |
 | `ogl audit` | Zero-config repository readiness scorecard with one recommended action. |
+| `ogl fix` | Scaffold the recommended action when it is mechanical; hand off a Codex prompt when it is not. |
 | `ogl init` / `ogl validate` | Create and check the local data CSVs. |
 | `ogl doctor` | One-shot readiness report across validation, freshness, privacy, planning, and release review. |
 | `ogl demo` | Generate the complete report set in one run. |
@@ -131,7 +141,7 @@ Open Growth Loop is designed around aggregate inputs. The event importer accepts
 
 ## Project Status
 
-Current release: v0.2.0 — an early, active project. The zero-config audit and GitHub Action are ready for any repository today; the CSV-driven loop is ready for small maintainer workflows. Verified by 68 tests, a ruff lint gate, and CI on Python 3.10–3.13.
+Current release: v0.2.0 — an early, active project. The zero-config audit, fix scaffolds, and GitHub Action are ready for any repository today; the CSV-driven loop is ready for small maintainer workflows. Verified by 80 tests, a ruff lint gate, and CI on Python 3.10–3.13.
 
 ## Contributing
 

@@ -271,8 +271,8 @@ def render_audit_markdown(audit: RepoAudit) -> str:
     return "\n".join(lines)
 
 
-def render_audit_prompt(audit: RepoAudit) -> str:
-    action = audit.recommended_action
+def render_audit_prompt(audit: RepoAudit, action: AuditAction | None = None) -> str:
+    action = action or audit.recommended_action
     if action is None:
         return ""
     steps = "\n".join(f"- {step}" for step in action.next_steps)
@@ -302,19 +302,23 @@ def write_audit_reports(audit: RepoAudit, out_dir: Path) -> tuple[Path, Path, Pa
     return md_path, md_history, json_path, json_history
 
 
+def action_from_check(check: AuditCheck) -> AuditAction:
+    return AuditAction(
+        check_id=check.id,
+        title=check.recommendation or check.name,
+        reason=check.detail,
+        confidence="high" if check.status == "fail" else "medium",
+        next_steps=list(NEXT_STEPS.get(check.id, [])),
+    )
+
+
 def _recommended_action(checks: list[AuditCheck]) -> AuditAction | None:
     by_id = {check.id: check for check in checks}
     for check_id in RECOMMENDATION_ORDER:
         check = by_id.get(check_id)
         if check is None or check.status in {"pass", "skip"}:
             continue
-        return AuditAction(
-            check_id=check.id,
-            title=check.recommendation,
-            reason=check.detail,
-            confidence="high" if check.status == "fail" else "medium",
-            next_steps=list(NEXT_STEPS.get(check.id, [])),
-        )
+        return action_from_check(check)
     return None
 
 

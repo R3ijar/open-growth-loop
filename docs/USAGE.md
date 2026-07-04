@@ -86,6 +86,18 @@ ogl audit --repo path/to/other-repo       # audit another directory
 ogl audit --summary report.md --strict    # append Markdown to a file; exit 1 on essential failures
 ```
 
+Scaffold the audit's recommended action when it is mechanical:
+
+```bash
+ogl fix --workspace .                      # fix the recommended action
+ogl fix --workspace . --check security_policy   # fix a specific check
+ogl fix --workspace . --license mit --holder "Your Name"   # licenses require an explicit choice
+ogl fix --workspace . --dry-run            # preview what would be written
+ogl fix --workspace . --list               # show which checks have scaffolds
+```
+
+Scaffoldable checks: `license`, `readme` (only when missing), `changelog`, `contributing`, `code_of_conduct`, `security_policy`, `issue_templates`, `pr_template`, and `ci` (a starter workflow detected from `pyproject.toml`/`setup.py`, `package.json`, `Cargo.toml`, or `go.mod`). Generated files carry TODO markers and existing files are never overwritten. Checks that need project knowledge (`install`, `quickstart`, `docs`, `examples`, `release_tags`, or an existing thin README) return a Codex-ready prompt in the JSON output instead.
+
 Initialize and validate a workspace:
 
 ```bash
