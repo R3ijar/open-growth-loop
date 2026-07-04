@@ -1,0 +1,23 @@
+name: Repository Audit
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "0 7 * * 1"
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Audit this repository with the local action
+        id: audit
+        uses: ./
+        with:
+          strict: "true"
+      - name: Show score
+        run: echo "Audit score ${{ steps.audit.outputs.score-percent }}%"

@@ -1,0 +1,52 @@
+name: "Open Growth Loop Audit"
+description: "Zero-config maintainer-readiness audit: scores repository hygiene and recommends one conservative next action. Runs fully on the runner; no project data leaves it."
+author: "Open Growth Loop contributors"
+branding:
+  icon: "activity"
+  color: "green"
+
+inputs:
+  path:
+    description: "Directory of the repository to audit, relative to the workflow workspace."
+    required: false
+    default: "."
+  strict:
+    description: "Fail the step when an essential check (README, LICENSE) fails."
+    required: false
+    default: "false"
+  python-version:
+    description: "Python version used to run the audit."
+    required: false
+    default: "3.12"
+
+outputs:
+  ok:
+    description: "true when no essential check failed."
+    value: ${{ steps.audit.outputs.ok }}
+  score-percent:
+    description: "Percentage of audit checks that pass."
+    value: ${{ steps.audit.outputs.score-percent }}
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Install Open Growth Loop
+      shell: bash
+      run: python -m pip install --quiet "${{ github.action_path }}"
+
+    - name: Run repository audit
+      id: audit
+      shell: bash
+      env:
+        OGL_PATH: ${{ inputs.path }}
+        OGL_STRICT: ${{ inputs.strict }}
+      run: |
+        WORKDIR="$RUNNER_TEMP/open-growth-loop"
+        ARGS=(audit --workspace "$WORKDIR" --repo "$OGL_PATH" --summary "$GITHUB_STEP_SUMMARY")
+        if [ "$OGL_STRICT" = "true" ]; then ARGS+=(--strict); fi
+        ogl "${ARGS[@]}" | tee "$RUNNER_TEMP/ogl-audit-output.json"
+        python -c "import json,os;p=json.load(open(os.path.join(os.environ['RUNNER_TEMP'],'ogl-audit-output.json'),encoding='utf-8'));print('ok='+str(p['ok']).lower());print('score-percent='+str(p['score']['percent']))" >> "$GITHUB_OUTPUT"
