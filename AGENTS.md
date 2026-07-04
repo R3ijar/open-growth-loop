@@ -20,7 +20,9 @@ Run the core checks before proposing or committing changes:
 
 ```bash
 python -m unittest discover -s tests
+python -m ruff check src tests
 python -m open_growth_loop --workspace . validate
+python -m open_growth_loop --workspace . audit
 python -m open_growth_loop --workspace . plan
 python -m open_growth_loop --workspace . query-backlog
 python -m open_growth_loop --workspace . prompt

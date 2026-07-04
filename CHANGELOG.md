@@ -4,6 +4,27 @@ All notable changes to Open Growth Loop are documented here.
 
 ## Unreleased
 
+## 0.2.0 - 2026-07-04
+
+### Added
+
+- `ogl audit` zero-config repository audit: scores README quality, license, onboarding, community files, changelog, CI, and release-tag hygiene for any repository, then recommends one conservative next action with a Codex-ready prompt. No CSV data required.
+- Reusable GitHub Action (`action.yml`) so any repository can run the audit from a workflow and read the report in the job summary, with `ok` and `score-percent` outputs and an optional `strict` mode.
+- Repository audit workflow that dogfoods the action on this repository on push, pull request, and a weekly schedule.
+- Release workflow that builds distributions and publishes to PyPI through trusted publishing when a `v*` tag is pushed.
+- Ruff lint job in CI with a pinned rule set, and Python 3.13 added to the test matrix.
+- The audit report is included in `ogl demo` output and listed on the report index front page.
+
+### Fixed
+
+- Freshness checks no longer flag mtime-based inputs as `future_dated` when the file was modified after a historical check date; that status is now reserved for dates parsed from data rows.
+- `[schema_aliases.action_memory]` config sections are accepted; previously the documented alias path raised `unknown schema alias section`.
+- `ogl prompt`, `ogl complete`, and `ogl track-experiment` now explain how to regenerate a missing or malformed `latest-plan.json` instead of crashing with a traceback.
+
+### Removed
+
+- Dead `best_funnel_dropoff` helper in the planner; funnel logic lives in the candidate engine.
+
 ## 0.1.7 - 2026-06-03
 
 ### Added

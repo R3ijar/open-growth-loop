@@ -1,15 +1,18 @@
 # Open Growth Loop
 
-**Local-first maintainer intelligence for OSS docs, examples, package pages, and release notes.**
+**Local-first maintainer intelligence for OSS repositories: audit any repo in one command, then turn real usage signals into one conservative daily action.**
 
 [![CI](https://github.com/R3ijar/open-growth-loop/actions/workflows/ci.yml/badge.svg)](https://github.com/R3ijar/open-growth-loop/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB.svg)](pyproject.toml)
-[![Release: v0.1.7](https://img.shields.io/badge/release-v0.1.7-0F766E.svg)](https://github.com/R3ijar/open-growth-loop/releases/tag/v0.1.7)
+[![Release: v0.2.0](https://img.shields.io/badge/release-v0.2.0-0F766E.svg)](https://github.com/R3ijar/open-growth-loop/releases/tag/v0.2.0)
 
-Turn Search Console CSVs, aggregate event CSVs, content inventory, and experiment logs into **one conservative daily maintainer action** without sending project data to a hosted service.
+There are two ways in:
 
-[Quickstart](#60-second-quickstart) | [Report gallery](docs/REPORT_GALLERY.md) | [Runnable examples](examples/README.md) | [Dogfooding](docs/DOGFOODING.md) | [Release readiness](docs/RELEASE_READINESS.md) | [Changelog](CHANGELOG.md)
+1. **Zero-config repository audit.** Point `ogl audit` at any repository, or drop the [GitHub Action](#run-it-as-a-github-action) into a workflow. You get a scored maintainer-readiness report (README, license, onboarding, community files, CI, release hygiene) and **one recommended next action** with a Codex-ready prompt. No data files, no accounts, nothing leaves your machine.
+2. **The full growth loop.** Feed local Search Console CSVs, aggregate event counts, content inventory, and experiment logs, and get **one conservative daily maintainer action** backed by evidence, decision traces, and outcome memory, without sending project data to a hosted service.
+
+[Quickstart](#60-second-quickstart) | [GitHub Action](#run-it-as-a-github-action) | [Report gallery](docs/REPORT_GALLERY.md) | [Runnable examples](examples/README.md) | [Dogfooding](docs/DOGFOODING.md) | [Release readiness](docs/RELEASE_READINESS.md) | [Changelog](CHANGELOG.md)
 
 ![Open Growth Loop maintainer workflow](docs/assets/open-growth-loop-system-v013.svg)
 
@@ -17,11 +20,12 @@ Turn Search Console CSVs, aggregate event CSVs, content inventory, and experimen
 
 | Signal | Current state |
 | --- | --- |
-| Maintainer workflow | doctor -> demo -> validation -> freshness -> candidates -> plan -> issue/prompt -> release brief -> report index -> outcome |
+| Zero-config entry | `ogl audit` scores any repository and recommends one next action; also available as a reusable GitHub Action |
+| Maintainer workflow | audit -> doctor -> demo -> validation -> freshness -> candidates -> plan -> issue/prompt -> release brief -> report index -> outcome |
 | Runnable examples | 5 synthetic workspaces covering release evidence, funnel dropoff, aliased exports, package pages, and release notes |
 | Release readiness | `ogl release-brief` checks validation, freshness, privacy, examples, changelog, README coverage, and claim guardrails |
-| Verification | 57 tests, CI passing, privacy scan clean |
-| Privacy model | local CSVs only; aggregate events only; no hosted analytics service |
+| Verification | 68 tests plus a ruff lint gate, CI on Python 3.10-3.13, privacy scan clean |
+| Privacy model | local files only; aggregate events only; no hosted analytics service |
 
 ## What It Produces
 
@@ -29,6 +33,7 @@ After one local run, a maintainer has reviewable files under `outbox/`:
 
 | Output | What it is for |
 | --- | --- |
+| `latest-audit` | Zero-config repository hygiene scorecard with one recommended next action and a Codex-ready prompt. |
 | `outbox/index.md` | Local report front page linking generated outputs with status, timestamps, and reading order. |
 | `outbox/index.json` | Machine-readable report readiness summary for automation or CI review. |
 | `latest-doctor` | One-shot readiness report across validation, freshness, privacy, planning, and release review. |
@@ -41,8 +46,11 @@ After one local run, a maintainer has reviewable files under `outbox/`:
 
 The tool is intentionally generic. It does not know about any one product, private app, customer database, or specialized domain. It is useful for projects that maintain docs, examples, changelogs, educational pages, package pages, or project websites and want to decide what to improve next from public/search signals and privacy-safe event aggregates.
 
-## v0.1.7 Highlights
+## v0.2.0 Highlights
 
+- **Zero-Config Repository Audit:** `ogl audit` works on any repository with no data files. It checks README quality, license, install/quickstart onboarding, docs, examples, community files, changelog, CI, and release-tag hygiene, then recommends one conservative next action.
+- **Reusable GitHub Action:** any repository can add `uses: R3ijar/open-growth-loop@v0.2.0` to a workflow and read the audit in the job summary, with `ok` and `score-percent` outputs and an optional strict gate.
+- **PyPI Release Pipeline:** tagged releases build and publish through PyPI trusted publishing; CI now covers Python 3.10-3.13 plus a ruff lint gate.
 - **Maintainer Doctor:** `ogl doctor` gives one readiness report across validation, freshness, privacy, candidate ranking, planning, and release review.
 - **Report Index JSON:** `ogl report-index` now writes `outbox/index.json` with available/missing reports for automation-friendly review.
 - **Demo Run:** `ogl demo` generates the main local report set in one command so reviewers can inspect the workflow quickly.
@@ -82,25 +90,23 @@ Package pages and release notes are covered through the same generic CSV rules a
 
 ## 60-Second Quickstart
 
-From a local checkout on Windows PowerShell:
+Install and audit any repository you maintain:
 
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -e .
-python -m open_growth_loop --workspace . validate
-python -m open_growth_loop --workspace . doctor
-python -m open_growth_loop --workspace . demo
-python -m open_growth_loop --workspace . freshness
-python -m open_growth_loop --workspace . candidates
-python -m open_growth_loop --workspace . plan
-python -m open_growth_loop --workspace . prompt
-python -m open_growth_loop --workspace . issue-drafts
-python -m open_growth_loop --workspace . release-brief
-python -m open_growth_loop --workspace . report-index
+```bash
+pip install git+https://github.com/R3ijar/open-growth-loop
+ogl audit --workspace path/to/your-repo
 ```
 
-On macOS/Linux, activate the environment with `. .venv/bin/activate` before running the install and CLI commands.
+That writes `outbox/audit/latest-audit.md`: a scorecard over 14 hygiene checks plus one recommended next action with a Codex-ready prompt. Nothing is uploaded anywhere.
+
+Then, when you want signal-driven planning instead of hygiene checks, step into the full loop:
+
+```bash
+ogl init --workspace .        # create the local data CSV files
+ogl validate --workspace .    # check schemas and privacy-safe headers
+ogl demo --workspace .        # generate the complete report set from sample data
+ogl plan --workspace .        # one conservative daily action from your real CSVs
+```
 
 Example plan output:
 
@@ -112,6 +118,31 @@ Example plan output:
   "reason": "Staged work should be proven public before creating another asset."
 }
 ```
+
+## Run It As A GitHub Action
+
+Add one workflow file to any repository and the audit runs on every push and appears in the Actions job summary:
+
+```yaml
+name: Repository Audit
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: R3ijar/open-growth-loop@v0.2.0
+        with:
+          strict: "false"   # set "true" to fail the job when README or LICENSE is missing
+```
+
+The action exposes `ok` and `score-percent` outputs for downstream steps. See [docs/GITHUB_ACTION.md](docs/GITHUB_ACTION.md) for inputs, outputs, and examples. This repository runs the same action on itself in [`.github/workflows/audit.yml`](.github/workflows/audit.yml).
 
 ## How The Loop Works
 
@@ -138,6 +169,7 @@ python -m open_growth_loop --workspace examples/package-page-cta prompt
 
 ## Commands
 
+- `ogl audit` scores any repository's maintainer readiness and recommends one next action. Works with no data files; add `--repo` to audit another directory, `--summary` to append the report to a file, and `--strict` to exit nonzero on essential failures.
 - `ogl init` creates the local `data/` files for a project.
 - `ogl validate` checks that CSV inputs are complete and privacy-safe.
 - `ogl doctor` writes one readiness report across validation, freshness, privacy, candidates, planning, and release review.
@@ -420,6 +452,8 @@ ogl outcome --workspace . --asset /docs/setup --outcome directionally_positive
 
 Then give `outbox/prompts/latest-prompt.md` or the plan output to Codex and work on one concrete change before recording the public artifact with `ogl ship`.
 
+For the GitHub Action inputs, outputs, and examples, see [docs/GITHUB_ACTION.md](docs/GITHUB_ACTION.md).
+For the release and PyPI publishing process, see [docs/RELEASING.md](docs/RELEASING.md).
 For a full walkthrough using the bundled sample CSVs, see [docs/EXAMPLE_WORKFLOW.md](docs/EXAMPLE_WORKFLOW.md).
 For examples of generated report output, see [docs/REPORT_GALLERY.md](docs/REPORT_GALLERY.md).
 For runnable example workspaces covering release evidence, funnel dropoff, aliased exports, package pages, and release notes, see [examples/README.md](examples/README.md).
@@ -449,9 +483,9 @@ Generated plans also include a Data Freshness block. Sample `.example.csv` files
 
 ## Project Status
 
-Current release: v0.1.6.
+Current release: v0.2.0.
 
-This is an early open-source extraction of a local growth-operations loop. It is ready for small CSV-driven maintainer workflows and intended to grow through issues, examples, and contributor feedback.
+This is an early open-source project. The zero-config audit and GitHub Action are ready for any repository today; the CSV-driven loop is ready for small maintainer workflows and intended to grow through issues, examples, and contributor feedback.
 
 ## License
 

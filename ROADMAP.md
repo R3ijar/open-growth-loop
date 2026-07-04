@@ -22,14 +22,18 @@
 - More sample data shapes for package pages and release notes.
 - One-command demo report generation.
 
-## 0.2
+## 0.2 - Done
+
+- Zero-config `ogl audit` repository hygiene check with one recommended next action.
+- Reusable GitHub Action for running the audit in any repository's workflow.
+- PyPI publishing through trusted publishing on tagged releases.
+- Lint gate and Python 3.13 coverage in CI.
+
+## 0.3
 
 - Optional GitHub issue creation from reviewed drafts.
 - Optional static-site sitemap checks.
 - Optional package registry metadata checks.
-
-## 0.3
-
 - Release-readiness scoring for docs and package-page launches.
 
 ## Principles
