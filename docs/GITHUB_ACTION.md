@@ -18,7 +18,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0   # lets the audit read tag history for release-hygiene checks
-      - uses: R3ijar/open-growth-loop@v0.2.0
+      - uses: R3ijar/open-growth-loop@main
 ```
 
 Open the run in the Actions tab and the audit report is in the job summary.
@@ -41,7 +41,7 @@ Open the run in the Actions tab and the audit report is in the job summary.
 Example of using the outputs:
 
 ```yaml
-      - uses: R3ijar/open-growth-loop@v0.2.0
+      - uses: R3ijar/open-growth-loop@main
         id: audit
       - name: Comment on low scores
         if: ${{ steps.audit.outputs.score-percent < 70 }}
@@ -72,4 +72,4 @@ on:
 
 ## Versioning
 
-Pin a tag (`@v0.2.0`) for stability. `@main` tracks the latest development state.
+`@main` tracks the latest development state. Once the `v0.2.0` tag is published, pin it (`@v0.2.0`) for stability — see [RELEASING.md](RELEASING.md).
