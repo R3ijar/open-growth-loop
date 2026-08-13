@@ -93,6 +93,25 @@ class AuditTests(unittest.TestCase):
         by_id = {check.id: check for check in audit.checks}
         self.assertEqual(by_id["license"].status, "pass")
 
+    def test_readme_vulnerability_reporting_instructions_satisfy_security_check(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            _write_healthy_repo(root)
+            (root / "SECURITY.md").unlink()
+            readme = (root / "README.md").read_text(encoding="utf-8")
+            (root / "README.md").write_text(
+                readme
+                + "\n## Vulnerability reporting\n\n"
+                + "For reporting a security vulnerability, contact the maintainer through the private disclosure channel.\n",
+                encoding="utf-8",
+            )
+
+            audit = build_repo_audit(root, generated_at="2026-08-12")
+
+        by_id = {check.id: check for check in audit.checks}
+        self.assertEqual(by_id["security_policy"].status, "pass")
+        self.assertIn("README", by_id["security_policy"].detail)
+
     def test_markdown_report_includes_scorecard_and_prompt(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)

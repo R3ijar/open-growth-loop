@@ -81,6 +81,10 @@ QUICKSTART_HEADING_PATTERN = re.compile(
     re.IGNORECASE | re.MULTILINE,
 )
 DOCS_LINK_PATTERN = re.compile(r"readthedocs|docs\.rs|hexdocs|pkg\.go\.dev|/docs/|\bdocumentation\b", re.IGNORECASE)
+SECURITY_GUIDANCE_PATTERN = re.compile(
+    r"(^#{1,6}\s*.*\b(vulnerability|security)\s+(reporting|disclosure)\b|\breport(?:ing)?\s+(?:a\s+)?security\s+vulnerabilit(?:y|ies)\b)",
+    re.IGNORECASE | re.MULTILINE,
+)
 
 # Ordered by how much a gap hurts a new visitor; the first non-pass check
 # becomes the single recommended action.
@@ -174,7 +178,7 @@ def build_repo_audit(repo: Path, generated_at: str | None = None) -> RepoAudit:
         _examples_check(repo, readme_text),
         _community_file_check(repo, "contributing", "community", "Contributing guide", "CONTRIBUTING.md"),
         _community_file_check(repo, "code_of_conduct", "community", "Code of conduct", "CODE_OF_CONDUCT.md"),
-        _community_file_check(repo, "security_policy", "community", "Security policy", "SECURITY.md"),
+        _security_policy_check(repo, readme_text),
         _issue_templates_check(repo),
         _pr_template_check(repo),
         _changelog_check(repo),
@@ -434,6 +438,30 @@ def _community_file_check(repo: Path, check_id: str, category: str, name: str, f
         "warn",
         f"No {filename} was found in the repository root, .github/, or docs/.",
         f"Add a {filename}.",
+    )
+
+
+def _security_policy_check(repo: Path, readme_text: str) -> AuditCheck:
+    for directory in COMMUNITY_DIRS:
+        path = repo / directory / "SECURITY.md" if directory else repo / "SECURITY.md"
+        if path.is_file():
+            return AuditCheck("security_policy", "community", "Security policy", "pass", "SECURITY.md is present.", "")
+    if SECURITY_GUIDANCE_PATTERN.search(readme_text):
+        return AuditCheck(
+            "security_policy",
+            "community",
+            "Security policy",
+            "pass",
+            "README contains explicit vulnerability-reporting guidance.",
+            "",
+        )
+    return AuditCheck(
+        "security_policy",
+        "community",
+        "Security policy",
+        "warn",
+        "No SECURITY.md or README vulnerability-reporting guidance was found.",
+        "Add a SECURITY.md.",
     )
 
 

@@ -251,7 +251,7 @@ def _github_markdown(github: GitHubSnapshot | None) -> list[str]:
                     ("Default branch", github.default_branch),
                     ("Open issues", github.open_issues),
                     ("Open pull requests", github.open_pull_requests),
-                    ("Failing default-branch runs", github.failing_default_branch_runs),
+                    ("Currently failing default-branch workflows", github.failing_default_branch_runs),
                     ("Latest release", github.latest_release or "none"),
                     ("Latest release date", github.latest_release_at or "not available"),
                 ]

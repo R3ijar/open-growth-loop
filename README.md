@@ -157,13 +157,14 @@ Open Growth Loop is designed around aggregate inputs. The event importer accepts
 - [Runnable examples](examples/README.md) — five synthetic workspaces with documented expected plans.
 - [Dogfooding](docs/DOGFOODING.md) — how this repository maintains itself with its own loop.
 - [Public compatibility study](docs/COMPATIBILITY_STUDY.md) — a transparent ten-repository run, including two defects it exposed and the limits of the evidence.
+- [Evidence-backed case studies](docs/EVIDENCE_CASE_STUDIES.md) — three repository-specific decision reviews, including rejected recommendations and two regression-tested fixes.
 - [Adoption and design partners](docs/ADOPTION.md) — run a field test and share verifiable feedback.
 - [Releasing](docs/RELEASING.md) — the tag-driven PyPI release process.
 - [Roadmap](ROADMAP.md) and [Changelog](CHANGELOG.md).
 
 ## Project Status
 
-Version on `main`: v0.2.0. See [GitHub Releases](https://github.com/R3ijar/open-growth-loop/releases) for the latest published version. The project is early and is actively seeking maintainer design partners. The zero-config audit, steward brief, fix scaffolds, and GitHub Action are ready for field testing; the CSV-driven loop remains available for small maintainer workflows.
+Version on `main`: v0.2.1 plus unreleased fixes. See [GitHub Releases](https://github.com/R3ijar/open-growth-loop/releases) for the latest published version. The project is early and is actively seeking maintainer design partners. The zero-config audit, steward brief, fix scaffolds, and GitHub Action are ready for field testing; the CSV-driven loop remains available for small maintainer workflows.
 
 ## Contributing
 

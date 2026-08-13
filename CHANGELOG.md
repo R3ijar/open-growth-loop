@@ -4,7 +4,14 @@ All notable changes to Open Growth Loop are documented here.
 
 ## Unreleased
 
-No changes yet.
+### Added
+
+- Three repository-specific decision-quality case studies with exact SHAs, raw recommendations, counterevidence, verdicts, and explicit non-adoption limits.
+
+### Fixed
+
+- Default-branch CI evidence now reports only workflows whose latest completed run failed, so a later success clears a recovered historical failure.
+- README sections with explicit vulnerability-reporting guidance now satisfy the security-policy audit instead of requiring a specific filename.
 
 ## 0.2.1 - 2026-08-12
 

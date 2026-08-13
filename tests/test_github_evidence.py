@@ -68,6 +68,84 @@ class GitHubEvidenceTests(unittest.TestCase):
         self.assertEqual(snapshot.failing_run.title, "CI")
         self.assertTrue(all(call[:2] in [["repo", "view"], ["issue", "list"], ["pr", "list"], ["run", "list"], ["release", "list"]] for call in calls))
 
+    def test_ignores_a_failure_recovered_by_a_newer_success_for_the_same_workflow(self) -> None:
+        def runner(args: list[str]) -> str:
+            command = args[:2]
+            if command == ["repo", "view"]:
+                return json.dumps({"defaultBranchRef": {"name": "main"}})
+            if command in (["issue", "list"], ["pr", "list"], ["release", "list"]):
+                return "[]"
+            if command == ["run", "list"]:
+                return json.dumps(
+                    [
+                        {
+                            "databaseId": 42,
+                            "workflowName": "CI",
+                            "status": "completed",
+                            "conclusion": "success",
+                            "createdAt": "2026-08-08T00:00:00Z",
+                            "url": "https://example.org/actions/42",
+                        },
+                        {
+                            "databaseId": 41,
+                            "workflowName": "CI",
+                            "status": "completed",
+                            "conclusion": "failure",
+                            "createdAt": "2026-08-07T00:00:00Z",
+                            "url": "https://example.org/actions/41",
+                        },
+                    ]
+                )
+            raise AssertionError(f"unexpected gh command: {args}")
+
+        snapshot = read_github_snapshot("owner/repo", runner=runner)
+
+        self.assertEqual(snapshot.failing_default_branch_runs, 0)
+        self.assertIsNone(snapshot.failing_run)
+
+    def test_keeps_the_latest_completed_failure_for_each_workflow(self) -> None:
+        def runner(args: list[str]) -> str:
+            command = args[:2]
+            if command == ["repo", "view"]:
+                return json.dumps({"defaultBranchRef": {"name": "main"}})
+            if command in (["issue", "list"], ["pr", "list"], ["release", "list"]):
+                return "[]"
+            if command == ["run", "list"]:
+                return json.dumps(
+                    [
+                        {
+                            "databaseId": 52,
+                            "workflowName": "Docs",
+                            "status": "completed",
+                            "conclusion": "failure",
+                            "createdAt": "2026-08-10T00:00:00Z",
+                            "url": "https://example.org/actions/52",
+                        },
+                        {
+                            "databaseId": 51,
+                            "workflowName": "CI",
+                            "status": "completed",
+                            "conclusion": "failure",
+                            "createdAt": "2026-08-09T00:00:00Z",
+                            "url": "https://example.org/actions/51",
+                        },
+                        {
+                            "databaseId": 50,
+                            "workflowName": "CI",
+                            "status": "completed",
+                            "conclusion": "success",
+                            "createdAt": "2026-08-08T00:00:00Z",
+                            "url": "https://example.org/actions/50",
+                        },
+                    ]
+                )
+            raise AssertionError(f"unexpected gh command: {args}")
+
+        snapshot = read_github_snapshot("owner/repo", runner=runner)
+
+        self.assertEqual(snapshot.failing_default_branch_runs, 2)
+        self.assertEqual(snapshot.failing_run.number, "52")
+
     def test_rejects_an_invalid_repo_locator(self) -> None:
         with self.assertRaises(ValueError):
             read_github_snapshot("not-a-repo", runner=lambda args: "[]")

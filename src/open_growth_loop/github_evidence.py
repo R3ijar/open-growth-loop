@@ -111,7 +111,7 @@ def read_github_snapshot(repo: str, limit: int = 50, runner: Runner | None = Non
 
     issue_items = sorted((_issue_item(item) for item in issues), key=lambda item: item.updated_at)
     pr_items = sorted((_pr_item(item) for item in pull_requests if not bool(item.get("isDraft"))), key=lambda item: item.updated_at)
-    failing_runs = [_run_item(item) for item in runs if _is_failure(item.get("conclusion"))]
+    failing_runs = [_run_item(item) for item in _current_failing_runs(runs)]
     actionable = next((item for item in issue_items if _actionable_labels(item.labels)), None)
     latest_release = releases[0] if releases else {}
     return GitHubSnapshot(
@@ -194,6 +194,18 @@ def _run_item(item: dict[str, object]) -> GitHubItem:
         str(item.get("createdAt") or ""),
         [str(item.get("conclusion") or "failure").lower()],
     )
+
+
+def _current_failing_runs(runs: list[dict[str, object]]) -> list[dict[str, object]]:
+    """Return only workflows whose latest completed default-branch run failed."""
+
+    completed = [item for item in runs if str(item.get("conclusion") or "").strip() and str(item.get("status") or "completed") == "completed"]
+    completed.sort(key=lambda item: str(item.get("createdAt") or ""), reverse=True)
+    latest_by_workflow: dict[str, dict[str, object]] = {}
+    for item in completed:
+        workflow = str(item.get("workflowName") or "GitHub Actions run")
+        latest_by_workflow.setdefault(workflow, item)
+    return [item for item in latest_by_workflow.values() if _is_failure(item.get("conclusion"))]
 
 
 def _label_names(value: object) -> list[str]:
