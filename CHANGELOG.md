@@ -6,6 +6,13 @@ All notable changes to Open Growth Loop are documented here.
 
 No changes yet.
 
+## 0.2.1 - 2026-08-12
+
+### Changed
+
+- Shortened the reusable Action description to satisfy GitHub Marketplace metadata requirements.
+- Identified the Action author as Jesus (R3ijar) in its public Marketplace metadata.
+
 ## 0.2.0 - 2026-08-12
 
 ### Added

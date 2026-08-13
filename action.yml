@@ -1,6 +1,6 @@
 name: "Open Growth Loop Audit"
-description: "Zero-config maintainer-readiness audit: scores repository hygiene and recommends one conservative next action. Runs fully on the runner; no project data leaves it."
-author: "Open Growth Loop contributors"
+description: "Audit repository readiness and recommend one conservative, evidence-backed maintenance action."
+author: "Jesus (R3ijar)"
 branding:
   icon: "activity"
   color: "green"
