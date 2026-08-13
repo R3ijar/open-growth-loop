@@ -1,16 +1,16 @@
 # Open Growth Loop
 
-**Local-first maintainer intelligence for open-source repositories.**
+**One evidence-backed maintainer action, without another noisy bot.**
 
 [![CI](https://github.com/R3ijar/open-growth-loop/actions/workflows/ci.yml/badge.svg)](https://github.com/R3ijar/open-growth-loop/actions/workflows/ci.yml)
 [![Repository Audit](https://github.com/R3ijar/open-growth-loop/actions/workflows/audit.yml/badge.svg)](https://github.com/R3ijar/open-growth-loop/actions/workflows/audit.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB.svg)](pyproject.toml)
-[![Release: v0.2.0](https://img.shields.io/badge/release-v0.2.0-0F766E.svg)](CHANGELOG.md)
+[![GitHub Release](https://img.shields.io/github/v/release/R3ijar/open-growth-loop)](https://github.com/R3ijar/open-growth-loop/releases/latest)
 
-Open Growth Loop answers one question for maintainers: **what should I improve next?**
+Open Growth Loop answers one question for maintainers: **what deserves attention next, and what evidence supports it?**
 
-Point it at any repository and it scores maintainer readiness in one command — no setup, no data files. Feed it local analytics exports and it plans one conservative, evidence-backed action per day. Everything runs on your machine: no accounts, no API keys, and no project data ever leaves it.
+Point it at any repository and it combines repository hygiene with local Git state into one maintainer brief. It can preview safe scaffolds for mechanical gaps, hand judgment-heavy work to an agent, and defer to real issue or pull-request demand when the local repository already looks healthy. Everything runs on your machine: no accounts, no API keys, and no project data ever leaves it.
 
 ![Open Growth Loop maintainer workflow](docs/assets/open-growth-loop-system-v013.svg)
 
@@ -19,6 +19,8 @@ Point it at any repository and it scores maintainer readiness in one command —
 ```bash
 pip install git+https://github.com/R3ijar/open-growth-loop
 ogl audit --workspace path/to/your-repo
+ogl steward --workspace path/to/your-repo
+ogl steward --workspace path/to/your-repo --no-write  # read-only JSON decision
 ```
 
 Thirty seconds later, `outbox/audit/latest-audit.md` holds a scorecard over 14 hygiene checks — README quality, license, install and quickstart onboarding, docs, examples, community files, changelog, CI, and release-tag cadence:
@@ -49,6 +51,22 @@ ogl fix --workspace path/to/your-repo --license mit   # licenses need an explici
 ```
 
 `ogl fix` scaffolds missing community files, changelogs, licenses, issue/PR templates, and an ecosystem-detected starter CI workflow — with TODO markers, never overwriting anything. Checks that need real judgment (README content, docs, quickstart) hand you the Codex prompt instead. A bare repository typically goes from 0% to ~70% with fixes alone; the rest is writing worth doing yourself.
+
+## Use It With Codex
+
+The repository includes an installable [`repo-steward` skill](skills/repo-steward/SKILL.md). It tells Codex to begin with local evidence, check live maintainer demand when available, choose exactly one bounded action, and keep pushes, releases, merges, comments, and other remote mutations behind explicit approval.
+
+Invoke it with a request such as:
+
+```text
+Use $repo-steward to inspect this repository and complete the safest evidence-backed maintainer action.
+```
+
+The skill uses `ogl steward` as its local evidence packet; the CLI remains useful without an agent.
+
+## Maintainer Field Test
+
+Open Growth Loop needs counterexamples more than endorsements. If you maintain a public repository, run `ogl steward --no-write` and tell us where its selected action was wrong. The [20-minute field test](docs/ADOPTION.md) has a structured feedback form and does not require a call or ongoing commitment.
 
 ## Use It As A GitHub Action
 
@@ -110,6 +128,7 @@ Weak evidence is labeled insufficient instead of being spun into a win. The goal
 | Command | What it does |
 | --- | --- |
 | `ogl audit` | Zero-config repository readiness scorecard with one recommended action. |
+| `ogl steward` | Combine the audit and local Git state into one maintainer brief and handoff. |
 | `ogl fix` | Scaffold the recommended action when it is mechanical; hand off a Codex prompt when it is not. |
 | `ogl init` / `ogl validate` | Create and check the local data CSVs. |
 | `ogl doctor` | One-shot readiness report across validation, freshness, privacy, planning, and release review. |
@@ -136,16 +155,19 @@ Open Growth Loop is designed around aggregate inputs. The event importer accepts
 - [Report gallery](docs/REPORT_GALLERY.md) — what the generated reports look like.
 - [Runnable examples](examples/README.md) — five synthetic workspaces with documented expected plans.
 - [Dogfooding](docs/DOGFOODING.md) — how this repository maintains itself with its own loop.
+- [Adoption and design partners](docs/ADOPTION.md) — run a field test and share verifiable feedback.
 - [Releasing](docs/RELEASING.md) — the tag-driven PyPI release process.
 - [Roadmap](ROADMAP.md) and [Changelog](CHANGELOG.md).
 
 ## Project Status
 
-Current release: v0.2.0 — an early, active project. The zero-config audit, fix scaffolds, and GitHub Action are ready for any repository today; the CSV-driven loop is ready for small maintainer workflows. Verified by 80 tests, a ruff lint gate, and CI on Python 3.10–3.13.
+Version on `main`: v0.2.0. See [GitHub Releases](https://github.com/R3ijar/open-growth-loop/releases) for the latest published version. The project is early and is actively seeking maintainer design partners. The zero-config audit, steward brief, fix scaffolds, and GitHub Action are ready for field testing; the CSV-driven loop remains available for small maintainer workflows.
 
 ## Contributing
 
 Issues and pull requests are welcome — [CONTRIBUTING.md](CONTRIBUTING.md) covers setup and expectations, and [docs/NEXT_ISSUES.md](docs/NEXT_ISSUES.md) lists good starting points. Please keep private product data and unverifiable adoption claims out of examples and docs; `ogl privacy-scan` and the release-brief guardrails exist for exactly that.
+
+Open Growth Loop is maintained by [@R3ijar](https://github.com/R3ijar), who owns scope, releases, and final review. See the [design-partner outreach playbook](docs/OUTREACH.md) for the public feedback process.
 
 ## License
 

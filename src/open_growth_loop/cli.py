@@ -43,6 +43,7 @@ from .report_index import (
     write_report_index,
     write_report_index_json,
 )
+from .steward import build_steward_brief, write_steward_reports
 from .weekly import build_weekly_review, render_weekly_review
 from .workspace import init_workspace, validate_workspace
 
@@ -76,6 +77,11 @@ def main() -> None:
     fix.add_argument("--holder", default="", help="Copyright holder name for license scaffolds. Defaults to '<project> contributors'.")
     fix.add_argument("--dry-run", action="store_true", help="Show what would be written without writing it.")
     fix.add_argument("--list", action="store_true", dest="list_fixes", help="List audit checks and whether each can be scaffolded.")
+
+    steward = subparsers.add_parser("steward", help="Create one local, evidence-backed maintainer brief.")
+    add_workspace_argument(steward)
+    steward.add_argument("--repo", default="", help="Repository directory to review. Defaults to the workspace.")
+    steward.add_argument("--no-write", action="store_true", help="Print the decision without writing outbox reports.")
 
     doctor = subparsers.add_parser("doctor", help="Run one-shot workspace readiness checks.")
     add_workspace_argument(doctor)
@@ -205,6 +211,8 @@ def main() -> None:
         run_audit(args, workspace)
     elif args.command == "fix":
         run_fix(args, workspace)
+    elif args.command == "steward":
+        run_steward(args, workspace)
     elif args.command == "doctor":
         run_doctor(args, workspace, config)
     elif args.command == "freshness":
@@ -348,6 +356,30 @@ def run_fix(args: argparse.Namespace, workspace: Path) -> None:
         payload["prompt"] = render_audit_prompt(audit, action_from_check(check))
     if result.status == "created":
         payload["score_percent_after"] = build_repo_audit(repo).score["percent"]
+    print(json.dumps(payload, indent=2))
+
+
+def run_steward(args: argparse.Namespace, workspace: Path) -> None:
+    repo = Path(args.repo).resolve() if args.repo else workspace
+    if not repo.is_dir():
+        raise SystemExit(f"Repository directory not found: {repo}")
+    brief = build_steward_brief(repo)
+    payload: dict[str, object] = {
+        "status": brief.status,
+        "repo": brief.repo,
+        "action": asdict(brief.action),
+        "written": not args.no_write,
+    }
+    if not args.no_write:
+        md_path, md_history, json_path, json_history = write_steward_reports(brief, workspace / "outbox" / "steward")
+        payload.update(
+            {
+                "markdown": str(md_path),
+                "markdown_history": str(md_history),
+                "json": str(json_path),
+                "json_history": str(json_history),
+            }
+        )
     print(json.dumps(payload, indent=2))
 
 
@@ -801,6 +833,9 @@ def generate_demo_reports(workspace: Path, config: GrowthConfig, include_tests: 
     audit = build_repo_audit(workspace)
     audit_md, _, audit_json, _ = write_audit_reports(audit, workspace / "outbox" / "audit")
 
+    steward = build_steward_brief(workspace)
+    steward_md, _, steward_json, _ = write_steward_reports(steward, workspace / "outbox" / "steward")
+
     report_index = build_report_index(workspace)
     index_md, _ = write_report_index(report_index, workspace / "outbox")
     index_json, _ = write_report_index_json(report_index, workspace / "outbox")
@@ -840,6 +875,8 @@ def generate_demo_reports(workspace: Path, config: GrowthConfig, include_tests: 
             "doctor_json": str(doctor_json),
             "audit": str(audit_md),
             "audit_json": str(audit_json),
+            "steward": str(steward_md),
+            "steward_json": str(steward_json),
             "report_index": str(index_md),
             "report_index_json": str(index_json),
         },

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Repo Steward"
+  short_description: "Audit OSS maintenance and choose one safe action"
+  default_prompt: "Use $repo-steward to audit this repository and recommend one evidence-backed maintainer action."

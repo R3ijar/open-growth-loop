@@ -19,6 +19,7 @@ class DemoCommandTests(unittest.TestCase):
             plan_exists = Path(reports["plan"]).exists()
             doctor_exists = Path(reports["doctor"]).exists()
             release_brief_exists = Path(reports["release_brief"]).exists()
+            steward_exists = Path(reports["steward"]).exists()
             report_index_exists = Path(reports["report_index"]).exists()
             report_index_json_exists = Path(reports["report_index_json"]).exists()
 
@@ -26,11 +27,12 @@ class DemoCommandTests(unittest.TestCase):
         self.assertTrue(payload["privacy_ok"])
         self.assertEqual(payload["candidates"], 3)
         self.assertEqual(payload["opportunities"], 1)
-        self.assertEqual(payload["report_index_available"], 12)
+        self.assertEqual(payload["report_index_available"], 13)
         self.assertIn("audit_score_percent", payload)
         self.assertTrue(plan_exists)
         self.assertTrue(doctor_exists)
         self.assertTrue(release_brief_exists)
+        self.assertTrue(steward_exists)
         self.assertTrue(report_index_exists)
         self.assertTrue(report_index_json_exists)
 
