@@ -3,12 +3,13 @@ from __future__ import annotations
 import tempfile
 import unittest
 from pathlib import Path
+from subprocess import CompletedProcess
 from unittest.mock import patch
 
 from test_audit import _write_healthy_repo
 
 from open_growth_loop.github_evidence import GitHubItem, GitHubSnapshot
-from open_growth_loop.steward import GitSnapshot, build_steward_brief, render_steward_markdown, write_steward_reports
+from open_growth_loop.steward import GitSnapshot, _git, build_steward_brief, render_steward_markdown, write_steward_reports
 
 
 class StewardTests(unittest.TestCase):
@@ -71,6 +72,14 @@ class StewardTests(unittest.TestCase):
                 md_path, _, json_path, _ = write_steward_reports(brief, root / "outbox" / "steward")
             self.assertTrue(md_path.exists())
             self.assertTrue(json_path.exists())
+
+    def test_git_reads_unicode_author_names_as_utf8(self) -> None:
+        completed = CompletedProcess(["git"], 0, stdout="Zoë Contributor\n", stderr="")
+        with patch("open_growth_loop.steward.subprocess.run", return_value=completed) as run:
+            value = _git(Path("repo"), "log", "--format=%aN")
+        self.assertEqual(value, "Zoë Contributor")
+        self.assertEqual(run.call_args.kwargs["encoding"], "utf-8")
+        self.assertEqual(run.call_args.kwargs["errors"], "replace")
 
 
 if __name__ == "__main__":

@@ -313,7 +313,15 @@ def _git_int(repo: Path, *args: str) -> int | None:
 
 def _git(repo: Path, *args: str, allow_empty: bool = False) -> str | None:
     try:
-        result = subprocess.run(["git", "-C", str(repo), *args], capture_output=True, text=True, timeout=10, check=False)
+        result = subprocess.run(
+            ["git", "-C", str(repo), *args],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=10,
+            check=False,
+        )
     except (OSError, subprocess.TimeoutExpired):
         return None
     if result.returncode != 0:

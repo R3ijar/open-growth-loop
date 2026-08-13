@@ -14,6 +14,7 @@ No changes yet.
 - Optional `ogl steward --github owner/repo` evidence adapter that reads bounded issue, pull-request, default-branch CI, and release metadata through `gh` without mutating GitHub; unavailable remote evidence is explicit rather than treated as an empty queue.
 - Installable `repo-steward` Codex skill for audit, triage, safe fixes, release preparation, and maintainer handoffs.
 - Public adoption and design-partner guide with explicit evidence rules and targets that are not presented as achievements.
+- Public ten-repository compatibility study across Python, Go, Rust, and Node.js, with exact inspected commits, raw heuristic outputs, defects found, and explicit non-adoption limitations.
 - Structured maintainer field-test issue form, CODEOWNERS, and a low-contact outreach playbook.
 - `ogl fix` scaffolds the audit's recommended action when it is mechanical: license (with an explicit `--license mit` or `--license apache-2.0` choice), README skeleton, changelog, contributing guide, code of conduct, security policy, issue and pull request templates, and a starter CI workflow detected from the project ecosystem (Python, Node, Rust, Go). Existing files are never overwritten, `--dry-run` previews the writes, `--list` shows which checks have scaffolds, and gaps that need real judgment hand off a Codex-ready prompt instead.
 - `ogl audit` zero-config repository audit: scores README quality, license, onboarding, community files, changelog, CI, and release-tag hygiene for any repository, then recommends one conservative next action with a Codex-ready prompt. No CSV data required.
@@ -31,6 +32,8 @@ No changes yet.
 
 ### Fixed
 
+- Git author names are decoded as UTF-8 with replacement fallback, preventing Windows locale errors on repositories with international contributor names.
+- Root-level dual-license files such as `LICENSE-APACHE` and `LICENSE-MIT` now satisfy the repository audit instead of producing a false missing-license failure.
 - Freshness checks no longer flag mtime-based inputs as `future_dated` when the file was modified after a historical check date; that status is now reserved for dates parsed from data rows.
 - `[schema_aliases.action_memory]` config sections are accepted; previously the documented alias path raised `unknown schema alias section`.
 - `ogl prompt`, `ogl complete`, and `ogl track-experiment` now explain how to regenerate a missing or malformed `latest-plan.json` instead of crashing with a traceback.

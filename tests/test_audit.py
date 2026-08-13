@@ -82,6 +82,17 @@ class AuditTests(unittest.TestCase):
         self.assertEqual(audit.recommended_action.check_id, "readme")
         self.assertEqual(audit.recommended_action.confidence, "medium")
 
+    def test_dual_license_filenames_are_recognized(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            _write_healthy_repo(root)
+            (root / "LICENSE").unlink()
+            (root / "LICENSE-APACHE").write_text("Apache License 2.0\n", encoding="utf-8")
+            (root / "LICENSE-MIT").write_text("MIT License\n", encoding="utf-8")
+            audit = build_repo_audit(root, generated_at="2026-08-12")
+        by_id = {check.id: check for check in audit.checks}
+        self.assertEqual(by_id["license"].status, "pass")
+
     def test_markdown_report_includes_scorecard_and_prompt(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)

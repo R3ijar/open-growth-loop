@@ -156,6 +156,7 @@ Open Growth Loop is designed around aggregate inputs. The event importer accepts
 - [Report gallery](docs/REPORT_GALLERY.md) — what the generated reports look like.
 - [Runnable examples](examples/README.md) — five synthetic workspaces with documented expected plans.
 - [Dogfooding](docs/DOGFOODING.md) — how this repository maintains itself with its own loop.
+- [Public compatibility study](docs/COMPATIBILITY_STUDY.md) — a transparent ten-repository run, including two defects it exposed and the limits of the evidence.
 - [Adoption and design partners](docs/ADOPTION.md) — run a field test and share verifiable feedback.
 - [Releasing](docs/RELEASING.md) — the tag-driven PyPI release process.
 - [Roadmap](ROADMAP.md) and [Changelog](CHANGELOG.md).

@@ -55,7 +55,7 @@ class RepoAudit:
 
 
 README_NAMES = ["README.md", "README.rst", "README.txt", "README"]
-LICENSE_NAMES = ["LICENSE", "LICENSE.md", "LICENSE.txt", "LICENSE.rst", "COPYING", "COPYING.md", "UNLICENSE"]
+LICENSE_PREFIXES = ("LICENSE", "LICENCE", "COPYING")
 CHANGELOG_NAMES = ["CHANGELOG.md", "CHANGELOG.rst", "CHANGELOG.txt", "CHANGELOG", "CHANGES.md", "CHANGES", "HISTORY.md", "NEWS.md", "RELEASES.md"]
 COMMUNITY_DIRS = ["", ".github", "docs"]
 CI_PATHS = [
@@ -349,7 +349,7 @@ def _readme_check(repo: Path, readme_text: str) -> AuditCheck:
 
 
 def _license_check(repo: Path) -> AuditCheck:
-    if any((repo / name).is_file() for name in LICENSE_NAMES):
+    if any(path.is_file() and (path.name.upper().startswith(LICENSE_PREFIXES) or path.name.upper() == "UNLICENSE") for path in repo.iterdir()):
         return AuditCheck("license", "essentials", "License", "pass", "A license file is present.", "")
     return AuditCheck(
         "license",
