@@ -135,6 +135,6 @@ They do **not** establish adoption, endorsement, maintainer agreement, time save
 
 These are Open Growth Loop experiments, not requests for the inspected projects:
 
-1. Add bounded latest-release-body evidence and test whether substantive hosted notes should satisfy the changelog decision.
-2. Design an optional repository-purpose profile that can identify examples, templates, monorepos, and externally documented projects without guessing from names.
+1. [Add bounded latest-release-body evidence](https://github.com/R3ijar/open-growth-loop/issues/7) and test whether substantive hosted notes should qualify the changelog decision.
+2. [Design an optional repository-purpose profile](https://github.com/R3ijar/open-growth-loop/issues/8) that can identify examples, templates, monorepos, and externally documented projects without guessing from names.
 3. Ask maintainers to challenge these verdicts through the [structured field test](ADOPTION.md) before turning any case into an adoption claim.
