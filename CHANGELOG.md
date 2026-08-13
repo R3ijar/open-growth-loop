@@ -12,6 +12,7 @@ No changes yet.
 
 - Shortened the reusable Action description to satisfy GitHub Marketplace metadata requirements.
 - Identified the Action author as Jesus (R3ijar) in its public Marketplace metadata.
+- Updated official GitHub Actions dependencies to their current Node.js 24-compatible major releases.
 
 ## 0.2.0 - 2026-08-12
 
