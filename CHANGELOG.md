@@ -11,6 +11,7 @@ No changes yet.
 ### Added
 
 - `ogl steward` combines the repository audit and local Git state into one evidence-backed maintainer brief with a conservative agent handoff.
+- Optional `ogl steward --github owner/repo` evidence adapter that reads bounded issue, pull-request, default-branch CI, and release metadata through `gh` without mutating GitHub; unavailable remote evidence is explicit rather than treated as an empty queue.
 - Installable `repo-steward` Codex skill for audit, triage, safe fixes, release preparation, and maintainer handoffs.
 - Public adoption and design-partner guide with explicit evidence rules and targets that are not presented as achievements.
 - Structured maintainer field-test issue form, CODEOWNERS, and a low-contact outreach playbook.

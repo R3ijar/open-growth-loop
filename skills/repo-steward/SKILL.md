@@ -10,9 +10,9 @@ Produce a maintainer decision from observable repository evidence. Prefer reduci
 ## Workflow
 
 1. Locate the repository root and read its contributor instructions completely.
-2. Run `ogl steward --workspace <repo>` when the user authorized report files. For read-only diagnosis or recommendation, run `ogl steward --workspace <repo> --no-write`. From an Open Growth Loop checkout, use `python -m open_growth_loop` with the same arguments.
+2. Run `ogl steward --workspace <repo>` when the user authorized report files. For read-only diagnosis or recommendation, run `ogl steward --workspace <repo> --no-write`. When current public GitHub demand is relevant and read-only network access is in scope, add `--github <owner/repo>`; this adapter only runs `gh` read commands. From an Open Growth Loop checkout, use `python -m open_growth_loop` with the same arguments.
 3. Read `outbox/steward/latest-steward.md` and inspect the files behind its evidence. Treat the report as a lead, not truth.
-4. Read remote issues, pull requests, CI runs, and releases when a read-only GitHub capability is available. Do not let local hygiene checks override a blocked user or contributor.
+4. Inspect the source URL behind any selected remote item. The snapshot deliberately omits issue bodies and CI logs, so verify those details before deciding. Do not let a cosmetic local hygiene gap override a blocked user or contributor.
 5. Select exactly one bounded action using [references/decision-policy.md](references/decision-policy.md).
 6. If the user requested implementation, make the smallest in-scope change, run the relevant checks, and report the evidence. Otherwise, present the recommendation without changing files.
 7. Leave a compact handoff: evidence, chosen action, files changed, validation, remaining risk, and any approval-gated next step.

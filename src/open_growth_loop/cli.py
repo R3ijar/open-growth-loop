@@ -18,6 +18,7 @@ from .experiments import (
 )
 from .fix import LICENSE_CHOICES, FixOptions, apply_fix, fixable_check_ids
 from .freshness import build_freshness_report, write_freshness_reports
+from .github_evidence import read_github_snapshot
 from .io_utils import (
     dated_report_path,
     first_existing,
@@ -81,6 +82,8 @@ def main() -> None:
     steward = subparsers.add_parser("steward", help="Create one local, evidence-backed maintainer brief.")
     add_workspace_argument(steward)
     steward.add_argument("--repo", default="", help="Repository directory to review. Defaults to the workspace.")
+    steward.add_argument("--github", default="", metavar="OWNER/REPO", help="Opt in to a read-only GitHub evidence snapshot through gh.")
+    steward.add_argument("--github-limit", type=int, default=50, help="Maximum open issues, PRs, and runs to inspect with --github.")
     steward.add_argument("--no-write", action="store_true", help="Print the decision without writing outbox reports.")
 
     doctor = subparsers.add_parser("doctor", help="Run one-shot workspace readiness checks.")
@@ -363,11 +366,17 @@ def run_steward(args: argparse.Namespace, workspace: Path) -> None:
     repo = Path(args.repo).resolve() if args.repo else workspace
     if not repo.is_dir():
         raise SystemExit(f"Repository directory not found: {repo}")
-    brief = build_steward_brief(repo)
+    try:
+        github_repo = getattr(args, "github", "")
+        github = read_github_snapshot(github_repo, limit=getattr(args, "github_limit", 50)) if github_repo else None
+    except ValueError as exc:
+        raise SystemExit(str(exc)) from exc
+    brief = build_steward_brief(repo, github=github)
     payload: dict[str, object] = {
         "status": brief.status,
         "repo": brief.repo,
         "action": asdict(brief.action),
+        "github": asdict(github) if github is not None else None,
         "written": not args.no_write,
     }
     if not args.no_write:

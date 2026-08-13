@@ -10,7 +10,7 @@
 
 Open Growth Loop answers one question for maintainers: **what deserves attention next, and what evidence supports it?**
 
-Point it at any repository and it combines repository hygiene with local Git state into one maintainer brief. It can preview safe scaffolds for mechanical gaps, hand judgment-heavy work to an agent, and defer to real issue or pull-request demand when the local repository already looks healthy. Everything runs on your machine: no accounts, no API keys, and no project data ever leaves it.
+Point it at any repository and it combines repository hygiene with local Git state into one maintainer brief. It can preview safe scaffolds for mechanical gaps, hand judgment-heavy work to an agent, and defer to real issue or pull-request demand when the local repository already looks healthy. Local-only mode needs no account or API key and sends nothing away; an explicit `--github owner/repo` flag can add a bounded, read-only snapshot through the authenticated GitHub CLI.
 
 ![Open Growth Loop maintainer workflow](docs/assets/open-growth-loop-system-v013.svg)
 
@@ -21,6 +21,7 @@ pip install git+https://github.com/R3ijar/open-growth-loop
 ogl audit --workspace path/to/your-repo
 ogl steward --workspace path/to/your-repo
 ogl steward --workspace path/to/your-repo --no-write  # read-only JSON decision
+ogl steward --workspace path/to/your-repo --github owner/repo  # opt-in live public evidence
 ```
 
 Thirty seconds later, `outbox/audit/latest-audit.md` holds a scorecard over 14 hygiene checks — README quality, license, install and quickstart onboarding, docs, examples, community files, changelog, CI, and release-tag cadence:
@@ -62,7 +63,7 @@ Invoke it with a request such as:
 Use $repo-steward to inspect this repository and complete the safest evidence-backed maintainer action.
 ```
 
-The skill uses `ogl steward` as its local evidence packet; the CLI remains useful without an agent.
+The skill uses `ogl steward` as its evidence packet and can opt in to `--github owner/repo` when current public issues, pull requests, CI runs, and releases should influence the decision. All GitHub commands are reads; the CLI remains useful without an agent or network access.
 
 ## Maintainer Field Test
 
@@ -128,7 +129,7 @@ Weak evidence is labeled insufficient instead of being spun into a win. The goal
 | Command | What it does |
 | --- | --- |
 | `ogl audit` | Zero-config repository readiness scorecard with one recommended action. |
-| `ogl steward` | Combine the audit and local Git state into one maintainer brief and handoff. |
+| `ogl steward` | Combine the audit, local Git state, and optional read-only GitHub evidence into one maintainer brief. |
 | `ogl fix` | Scaffold the recommended action when it is mechanical; hand off a Codex prompt when it is not. |
 | `ogl init` / `ogl validate` | Create and check the local data CSVs. |
 | `ogl doctor` | One-shot readiness report across validation, freshness, privacy, planning, and release review. |
@@ -145,7 +146,7 @@ Full walkthroughs, data schemas, thresholds, and column aliases live in the [usa
 
 ## Privacy Boundary
 
-Open Growth Loop is designed around aggregate inputs. The event importer accepts only `date,asset,event,count` and rejects private-looking columns such as email, user, session, ip, payload, token, or secret. It never uploads analytics or project files, never calls hosted APIs, never publishes changes automatically, and never claims a change worked from tiny samples or missing artifacts.
+Open Growth Loop is designed around aggregate inputs. The event importer accepts only `date,asset,event,count` and rejects private-looking columns such as email, user, session, ip, payload, token, or secret. Local-only commands never upload analytics or project files. The optional `steward --github owner/repo` adapter calls `gh` only for repository metadata and never writes, comments, labels, merges, closes, or publishes. The project never claims a change worked from tiny samples or missing artifacts.
 
 ## Documentation
 

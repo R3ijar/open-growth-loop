@@ -7,6 +7,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 
 from .audit import AuditAction, RepoAudit, build_repo_audit
+from .github_evidence import GitHubItem, GitHubSnapshot
 from .io_utils import today_iso, write_json_report, write_text_report
 from .reporting import collapsible_section, key_value_table, status_label
 
@@ -41,16 +42,18 @@ class StewardBrief:
     status: str
     audit: RepoAudit
     git: GitSnapshot
+    github: GitHubSnapshot | None
     action: StewardAction
 
 
-def build_steward_brief(repo: Path, generated_at: str | None = None) -> StewardBrief:
+def build_steward_brief(repo: Path, generated_at: str | None = None, github: GitHubSnapshot | None = None) -> StewardBrief:
     generated_at = generated_at or today_iso()
     audit = build_repo_audit(repo, generated_at=generated_at)
     git = _read_git_snapshot(repo)
-    action = _select_action(audit, git)
-    status = "fail" if audit.score["fail"] else ("warn" if audit.score["warn"] or git.clean is False else "pass")
-    return StewardBrief(generated_at, str(repo), repo.name or str(repo), status, audit, git, action)
+    action = _select_action(audit, git, github)
+    remote_warn = bool(github and (not github.available or github.failing_default_branch_runs))
+    status = "fail" if audit.score["fail"] else ("warn" if audit.score["warn"] or git.clean is False or remote_warn else "pass")
+    return StewardBrief(generated_at, str(repo), repo.name or str(repo), status, audit, git, github, action)
 
 
 def render_steward_markdown(brief: StewardBrief) -> str:
@@ -60,7 +63,11 @@ def render_steward_markdown(brief: StewardBrief) -> str:
     lines = [
         "# Maintainer Brief",
         "",
-        "A local evidence packet that selects one reviewable maintenance action. It does not fetch remote issues, pull requests, CI logs, or adoption metrics.",
+        (
+            "A local evidence packet plus an opt-in, read-only GitHub snapshot. It selects one reviewable maintenance action without mutating remote state."
+            if brief.github
+            else "A local evidence packet that selects one reviewable maintenance action. It does not fetch remote issues, pull requests, CI logs, or adoption metrics."
+        ),
         "",
         "## Decision",
         "",
@@ -97,6 +104,7 @@ def render_steward_markdown(brief: StewardBrief) -> str:
         "",
         *(f"- {item}" for item in action.evidence),
         "",
+        *_github_markdown(brief.github),
         "## One Next Action",
         "",
         *(f"- [ ] {step}" for step in action.steps),
@@ -106,7 +114,11 @@ def render_steward_markdown(brief: StewardBrief) -> str:
         "- Review the evidence before changing files.",
         "- Do not push, publish, comment, label, merge, or close remote work without explicit approval.",
         "- Do not invent users, downloads, security impact, or ecosystem-importance claims.",
-        "- Verify remote issue, pull-request, CI, and release state separately when those signals matter.",
+        (
+            "- GitHub evidence was fetched read-only through gh; verify details in GitHub before acting."
+            if brief.github and brief.github.available
+            else "- Verify remote issue, pull-request, CI, and release state separately when those signals matter."
+        ),
         "",
         *collapsible_section("Agent handoff prompt", ["```text", *render_steward_prompt(brief).splitlines(), "```"]),
         "",
@@ -144,7 +156,17 @@ def write_steward_reports(brief: StewardBrief, out_dir: Path) -> tuple[Path, Pat
     return md_path, md_history, json_path, json_history
 
 
-def _select_action(audit: RepoAudit, git: GitSnapshot) -> StewardAction:
+def _select_action(audit: RepoAudit, git: GitSnapshot, github: GitHubSnapshot | None = None) -> StewardAction:
+    if github and github.available and github.failing_run:
+        run = github.failing_run
+        return StewardAction(
+            "github_ci",
+            f"Investigate failing {github.default_branch} CI: {run.title}",
+            "A failing default-branch workflow can block releases and reduce contributor confidence.",
+            "high",
+            [f"GitHub reports {github.failing_default_branch_runs} failing default-branch run(s).", _item_evidence(run)],
+            ["Open the failing workflow log.", "Reproduce the smallest failing command locally.", "Patch the cause and run the relevant checks.", "Ask for approval before pushing."],
+        )
     if audit.recommended_action is not None:
         return _audit_action(audit.recommended_action)
     if git.available and git.clean is False:
@@ -156,6 +178,26 @@ def _select_action(audit: RepoAudit, git: GitSnapshot) -> StewardAction:
             [f"git status reports {git.changed_paths} changed path(s).", "All repository-hygiene checks currently pass."],
             ["Inspect the complete diff.", "Identify and preserve unrelated or user-owned changes.", "Run the relevant tests and lint checks.", "Summarize the reviewable maintenance slice; do not commit or push without approval."],
         )
+    if github and github.available and github.oldest_pull_request:
+        pull_request = github.oldest_pull_request
+        return StewardAction(
+            "github_pull_request",
+            f"Review pull request #{pull_request.number}: {pull_request.title}",
+            "An open, non-draft pull request is direct contributor demand and should be reviewed before speculative backlog work.",
+            "high",
+            [_item_evidence(pull_request), f"GitHub reports {github.open_pull_requests} open pull request(s)."],
+            ["Read the pull request summary and changed files.", "Verify its test and CI evidence.", "Choose a clear review outcome.", "Ask for approval before commenting, merging, or closing."],
+        )
+    if github and github.available and github.actionable_issue:
+        issue = github.actionable_issue
+        return StewardAction(
+            "github_issue",
+            f"Triage reproducible issue #{issue.number}: {issue.title}",
+            "A bug-labeled public issue is stronger maintainer demand than a speculative feature.",
+            "medium",
+            [_item_evidence(issue), f"Labels: {', '.join(issue.labels) or 'none'}."],
+            ["Confirm the reproduction and affected version.", "Identify the smallest safe fix or missing evidence.", "Run the relevant regression checks.", "Ask for approval before commenting, labeling, or closing."],
+        )
     if git.commits_since_tag is not None and git.commits_since_tag >= 10:
         return StewardAction(
             "release",
@@ -165,6 +207,25 @@ def _select_action(audit: RepoAudit, git: GitSnapshot) -> StewardAction:
             [f"Latest tag: {git.latest_tag or 'none'}.", f"Commits since tag: {git.commits_since_tag}."],
             ["Review user-visible changes since the latest tag.", "Update the changelog and version metadata.", "Run the full release checks.", "Ask for approval before tagging or publishing."],
         )
+    if github and github.available and github.oldest_issue:
+        issue = github.oldest_issue
+        return StewardAction(
+            "github_issue_review",
+            f"Review issue #{issue.number}: {issue.title}",
+            "Local signals are healthy, so the oldest current issue is the best available source of maintainer demand.",
+            "medium",
+            [_item_evidence(issue), f"GitHub reports {github.open_issues} open issue(s)."],
+            ["Read the issue and linked evidence.", "Decide whether it is actionable, needs information, or is out of scope.", "Record the smallest next step.", "Ask for approval before changing remote state."],
+        )
+    if github and github.available:
+        return StewardAction(
+            "wait_for_signal",
+            "Keep the repository healthy and wait for stronger demand",
+            "The local audit is healthy and the read-only GitHub snapshot found no open issue, pull request, or failing default-branch workflow.",
+            "high",
+            ["All counted repository-hygiene checks pass.", "The current GitHub snapshot found no actionable maintainer queue."],
+            ["Avoid adding speculative scope.", "Recheck after new maintainer or contributor evidence arrives.", "Use the time for outreach or documentation validation rather than invented feature work."],
+        )
     return StewardAction(
         "remote_review",
         "Review the live issue and pull-request queue before changing code",
@@ -173,6 +234,37 @@ def _select_action(audit: RepoAudit, git: GitSnapshot) -> StewardAction:
         ["All counted repository-hygiene checks pass.", "Remote issues, pull requests, CI runs, and adoption signals were not fetched."],
         ["Read the oldest open issue and pull request with current remote data.", "Identify one blocked user or contributor outcome.", "Record the evidence and choose the smallest action that unblocks it.", "Ask for approval before mutating remote state."],
     )
+
+
+def _github_markdown(github: GitHubSnapshot | None) -> list[str]:
+    if github is None:
+        return []
+    lines = ["## Read-only GitHub Evidence", ""]
+    if not github.available:
+        lines.extend([f"GitHub evidence for `{github.repo}` was unavailable: {github.error}", ""])
+        return lines
+    lines.extend(
+        [
+            *key_value_table(
+                [
+                    ("Repository", github.repo),
+                    ("Default branch", github.default_branch),
+                    ("Open issues", github.open_issues),
+                    ("Open pull requests", github.open_pull_requests),
+                    ("Failing default-branch runs", github.failing_default_branch_runs),
+                    ("Latest release", github.latest_release or "none"),
+                    ("Latest release date", github.latest_release_at or "not available"),
+                ]
+            ),
+            "",
+        ]
+    )
+    return lines
+
+
+def _item_evidence(item: GitHubItem) -> str:
+    suffix = f" ({item.url})" if item.url else ""
+    return f"#{item.number} {item.title}{suffix}."
 
 
 def _audit_action(action: AuditAction) -> StewardAction:

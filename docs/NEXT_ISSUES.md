@@ -2,16 +2,9 @@
 
 This is the initial public backlog for Open Growth Loop. Each open item is small enough to become a focused GitHub issue.
 
-## Add a Read-Only GitHub Evidence Adapter
+## Completed in v0.2.0
 
-`ogl steward` currently reports local repository and Git signals only. Add an optional adapter that reads issues, pull requests, CI runs, and releases without mutating remote state.
-
-Acceptance criteria:
-
-- Local-only behavior remains the default and works without GitHub authentication.
-- The adapter records the source URL and retrieval time for every remote signal.
-- Missing permissions or rate limits become explicit `unavailable` evidence, not empty queues.
-- No issue, pull request, label, comment, merge, or release is changed.
+The read-only GitHub evidence adapter is now available through `ogl steward --github owner/repo`. Local-only behavior remains the default; remote failures are explicit; selected items retain their source URLs; and the adapter issues only bounded `gh` read commands.
 
 ## Add Maintainer Brief Fixtures
 

@@ -104,9 +104,12 @@ Create a maintainer brief from the audit and local Git state:
 ogl steward --workspace .
 ogl steward --workspace reports --repo path/to/other-repository
 ogl steward --workspace . --no-write       # print JSON without creating outbox reports
+ogl steward --workspace . --github owner/repo
 ```
 
-The brief writes Markdown and JSON under `outbox/steward/`. It chooses one action from local evidence, records the decision boundary, and includes an agent handoff. It does not fetch remote issues, pull requests, CI logs, releases, or adoption metrics; inspect those separately before acting when they could change the priority.
+The brief writes Markdown and JSON under `outbox/steward/`. It chooses one action, records the decision boundary, and includes an agent handoff. Local repository and Git evidence remain the default and require no network access.
+
+`--github owner/repo` is an explicit opt-in to a bounded, read-only snapshot through the authenticated GitHub CLI. It inspects the default branch, open issues, open pull requests, recent workflow runs, and latest release metadata. It does not read issue bodies or CI logs and cannot comment, label, merge, close, publish, or otherwise mutate GitHub. `--github-limit` changes the default 50-item bound. Missing authentication, permissions, or network access appear as unavailable evidence instead of an empty queue.
 
 Initialize and validate a workspace:
 

@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 from test_audit import _write_healthy_repo
 
+from open_growth_loop.github_evidence import GitHubItem, GitHubSnapshot
 from open_growth_loop.steward import GitSnapshot, build_steward_brief, render_steward_markdown, write_steward_reports
 
 
@@ -45,6 +46,20 @@ class StewardTests(unittest.TestCase):
         self.assertEqual(brief.action.kind, "remote_review")
         self.assertIn("Safety Boundary", markdown)
         self.assertIn("does not fetch", markdown.lower())
+
+    def test_failing_remote_ci_wins_when_opted_in(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            _write_healthy_repo(root)
+            git = GitSnapshot(True, "main", True, 0, "v1.0.0", 2, 6, 2)
+            run = GitHubItem("31", "CI", "https://example.org/actions/31", "2026-08-12", ["failure"])
+            github = GitHubSnapshot(True, "owner/repo", "", "main", 0, 0, 1, "v1.0.0", "2026-08-01", None, None, None, run)
+            with patch("open_growth_loop.steward._read_git_snapshot", return_value=git):
+                brief = build_steward_brief(root, generated_at="2026-08-12", github=github)
+                markdown = render_steward_markdown(brief)
+        self.assertEqual(brief.action.kind, "github_ci")
+        self.assertIn("Read-only GitHub Evidence", markdown)
+        self.assertIn("failing", brief.action.title.lower())
 
     def test_write_reports_creates_markdown_and_json(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
