@@ -98,6 +98,16 @@ ogl fix --workspace . --list               # show which checks have scaffolds
 
 Scaffoldable checks: `license`, `readme` (only when missing), `changelog`, `contributing`, `code_of_conduct`, `security_policy`, `issue_templates`, `pr_template`, and `ci` (a starter workflow detected from `pyproject.toml`/`setup.py`, `package.json`, `Cargo.toml`, or `go.mod`). Generated files carry TODO markers and existing files are never overwritten. Checks that need project knowledge (`install`, `quickstart`, `docs`, `examples`, `release_tags`, or an existing thin README) return a Codex-ready prompt in the JSON output instead.
 
+Create a maintainer brief from the audit and local Git state:
+
+```bash
+ogl steward --workspace .
+ogl steward --workspace reports --repo path/to/other-repository
+ogl steward --workspace . --no-write       # print JSON without creating outbox reports
+```
+
+The brief writes Markdown and JSON under `outbox/steward/`. It chooses one action from local evidence, records the decision boundary, and includes an agent handoff. It does not fetch remote issues, pull requests, CI logs, releases, or adoption metrics; inspect those separately before acting when they could change the priority.
+
 Initialize and validate a workspace:
 
 ```bash

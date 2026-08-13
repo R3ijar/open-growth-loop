@@ -1,23 +1,25 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "open-growth-loop"
 version = "0.2.0"
-description = "A local-first growth and content learning loop for open-source maintainers."
+description = "Local-first repository stewardship with audits, safe next actions, and maintainer handoffs."
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "Apache-2.0" }
+license = "Apache-2.0"
 authors = [
-  { name = "Open Growth Loop contributors" }
+  { name = "R3ijar" }
 ]
-keywords = ["growth", "seo", "content", "open-source", "maintainer-tools", "codex"]
+maintainers = [
+  { name = "R3ijar" }
+]
+keywords = ["open-source", "maintainer-tools", "repository-audit", "release-workflow", "local-first", "codex"]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Environment :: Console",
   "Intended Audience :: Developers",
-  "License :: OSI Approved :: Apache Software License",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",

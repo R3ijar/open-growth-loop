@@ -41,6 +41,7 @@ class ReportIndex:
 
 
 REPORTS = [
+    ("Maintainer Brief", "steward/latest-steward.md", "One action selected from repository hygiene and local Git maintenance signals."),
     ("Repo Audit", "audit/latest-audit.md", "Zero-config repository hygiene check with one recommended next action."),
     ("Doctor", "doctor/latest-doctor.md", "One-shot readiness check across validation, freshness, privacy, planning, and release review."),
     ("Plan", "plans/latest-plan.md", "The selected daily maintainer action and decision trace."),
@@ -98,11 +99,12 @@ def render_report_index(index: ReportIndex) -> str:
         "",
         "## Recommended Reading Order",
         "",
-        "1. Start with `Freshness` to confirm the inputs are trustworthy enough.",
-        "2. Read `Candidates` to see what the engine considered.",
-        "3. Use `Plan`, `Issue Draft`, and `Prompt` for one focused change.",
-        "4. Check `Release Brief` before public release notes, applications, or broad claims.",
-        "5. Return later to `Weekly Review`, `Experiment Review`, and `Outcome` commands to close the loop.",
+        "1. Start with `Maintainer Brief` for the local repository decision boundary.",
+        "2. Use `Freshness` to confirm optional data-loop inputs are trustworthy enough.",
+        "3. Read `Candidates` to see what the data loop considered.",
+        "4. Use `Plan`, `Issue Draft`, and `Prompt` for one focused change.",
+        "5. Check `Release Brief` before public release notes, applications, or broad claims.",
+        "6. Return later to `Weekly Review`, `Experiment Review`, and `Outcome` commands to close the loop.",
         "",
     ]
     return "\n".join(lines)

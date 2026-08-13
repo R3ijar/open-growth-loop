@@ -2,6 +2,37 @@
 
 This is the initial public backlog for Open Growth Loop. Each open item is small enough to become a focused GitHub issue.
 
+## Add a Read-Only GitHub Evidence Adapter
+
+`ogl steward` currently reports local repository and Git signals only. Add an optional adapter that reads issues, pull requests, CI runs, and releases without mutating remote state.
+
+Acceptance criteria:
+
+- Local-only behavior remains the default and works without GitHub authentication.
+- The adapter records the source URL and retrieval time for every remote signal.
+- Missing permissions or rate limits become explicit `unavailable` evidence, not empty queues.
+- No issue, pull request, label, comment, merge, or release is changed.
+
+## Add Maintainer Brief Fixtures
+
+Create small synthetic repositories that exercise dirty-worktree, release-backlog, repository-gap, and remote-review decisions.
+
+Acceptance criteria:
+
+- Each fixture documents the expected selected action and why alternatives lose.
+- Tests run without network access or global Git configuration.
+- Reports contain no personal names, emails, or unverifiable adoption claims.
+
+## Field-Test the Repo Steward Skill
+
+Collect public feedback from independent maintainers using the workflow in `docs/ADOPTION.md`.
+
+Acceptance criteria:
+
+- Each recorded adopter links to a public repository or public feedback issue.
+- Feedback that changes a decision rule ships with a regression test.
+- Targets remain clearly labeled as targets until the evidence exists.
+
 ## Add Optional GitHub Issue Creation
 
 Maintainers may eventually want reviewed drafts to become GitHub issues, but the core should not require GitHub auth.

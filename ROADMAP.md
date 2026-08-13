@@ -31,6 +31,10 @@
 
 ## 0.3
 
+- Local `ogl steward` brief combining repository audit and Git maintenance signals.
+- Installable `repo-steward` skill with explicit remote-mutation boundaries.
+- Public design-partner field test and verifiable adoption ledger.
+- Optional read-only GitHub evidence adapter for issues, pull requests, CI, and releases.
 - Optional GitHub issue creation from reviewed drafts.
 - Optional static-site sitemap checks.
 - Optional package registry metadata checks.

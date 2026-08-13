@@ -4,20 +4,29 @@ All notable changes to Open Growth Loop are documented here.
 
 ## Unreleased
 
+No changes yet.
+
+## 0.2.0 - 2026-08-12
+
 ### Added
 
+- `ogl steward` combines the repository audit and local Git state into one evidence-backed maintainer brief with a conservative agent handoff.
+- Installable `repo-steward` Codex skill for audit, triage, safe fixes, release preparation, and maintainer handoffs.
+- Public adoption and design-partner guide with explicit evidence rules and targets that are not presented as achievements.
+- Structured maintainer field-test issue form, CODEOWNERS, and a low-contact outreach playbook.
 - `ogl fix` scaffolds the audit's recommended action when it is mechanical: license (with an explicit `--license mit` or `--license apache-2.0` choice), README skeleton, changelog, contributing guide, code of conduct, security policy, issue and pull request templates, and a starter CI workflow detected from the project ecosystem (Python, Node, Rust, Go). Existing files are never overwritten, `--dry-run` previews the writes, `--list` shows which checks have scaffolds, and gaps that need real judgment hand off a Codex-ready prompt instead.
-
-## 0.2.0 - 2026-07-04
-
-### Added
-
 - `ogl audit` zero-config repository audit: scores README quality, license, onboarding, community files, changelog, CI, and release-tag hygiene for any repository, then recommends one conservative next action with a Codex-ready prompt. No CSV data required.
 - Reusable GitHub Action (`action.yml`) so any repository can run the audit from a workflow and read the report in the job summary, with `ok` and `score-percent` outputs and an optional `strict` mode.
 - Repository audit workflow that dogfoods the action on this repository on push, pull request, and a weekly schedule.
 - Release workflow that builds distributions and publishes to PyPI through trusted publishing when a `v*` tag is pushed.
 - Ruff lint job in CI with a pinned rule set, and Python 3.13 added to the test matrix.
 - The audit report is included in `ogl demo` output and listed on the report index front page.
+
+### Changed
+
+- Repositioned the project around repository stewardship and real maintainer demand instead of application-facing claims.
+- Updated package license metadata to the SPDX form supported by current setuptools releases.
+- Declared `@R3ijar` as package maintainer and final repository reviewer.
 
 ### Fixed
 

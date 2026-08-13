@@ -1,0 +1,79 @@
+name: Maintainer field test
+description: Share a 20-minute Repo Steward test from a public repository
+title: "[Field test]: "
+labels: ["design-partner", "feedback"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for testing Open Growth Loop. Use a public repository you maintain or have permission to inspect. Do not include secrets, private issue data, or unpublished security findings.
+  - type: input
+    id: repository
+    attributes:
+      label: Public repository
+      description: Link the repository used for the field test.
+      placeholder: https://github.com/owner/repository
+    validations:
+      required: true
+  - type: dropdown
+    id: role
+    attributes:
+      label: Your role
+      options:
+        - Primary maintainer
+        - Core maintainer
+        - Contributor with maintainer permission
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Open Growth Loop version
+      description: Provide the installed package version or commit SHA.
+      placeholder: 0.2.0 or commit SHA
+    validations:
+      required: true
+  - type: dropdown
+    id: decision
+    attributes:
+      label: Was the selected action useful?
+      options:
+        - Yes, it selected the right priority
+        - Partly, the priority needed adjustment
+        - No, it missed more important work
+        - The command did not complete
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: What did Repo Steward recommend?
+      description: Paste the action, reason, and confidence. Redact anything sensitive.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What should the next action have been?
+      description: Explain the real maintainer priority and the evidence you used.
+    validations:
+      required: true
+  - type: textarea
+    id: friction
+    attributes:
+      label: Installation or workflow friction
+      description: What was confusing, slow, or unnecessary?
+    validations:
+      required: false
+  - type: checkboxes
+    id: consent
+    attributes:
+      label: Public evidence
+      options:
+        - label: This feedback may be linked from the public adoption ledger.
+          required: true
+        - label: I have removed private data, secrets, and unpublished security details.
+          required: true
+        - label: I agree to follow this project's Code of Conduct.
+          required: true

@@ -7,6 +7,7 @@ Guidance for Codex and other coding agents working on Open Growth Loop.
 Open Growth Loop is generic OSS maintainer tooling. Keep the public project focused on:
 
 - local-first CLI workflows
+- repository audits, local Git maintenance signals, and one-action maintainer briefs
 - aggregate Search Console rows
 - aggregate event CSVs
 - docs, examples, onboarding, release notes, package pages, and project websites
@@ -23,6 +24,7 @@ python -m unittest discover -s tests
 python -m ruff check src tests
 python -m open_growth_loop --workspace . validate
 python -m open_growth_loop --workspace . audit
+python -m open_growth_loop --workspace . steward
 python -m open_growth_loop --workspace . plan
 python -m open_growth_loop --workspace . query-backlog
 python -m open_growth_loop --workspace . prompt
