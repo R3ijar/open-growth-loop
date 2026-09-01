@@ -14,6 +14,7 @@ import subprocess
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
+from .config import AuditProfile
 from .io_utils import today_iso, write_json_report, write_text_report
 from .reporting import (
     collapsible_section,
@@ -52,6 +53,7 @@ class RepoAudit:
     checks: list[AuditCheck]
     recommended_action: AuditAction | None
     warnings: list[str]
+    profile: AuditProfile | None = None
 
 
 README_NAMES = ["README.md", "README.rst", "README.txt", "README"]
@@ -165,7 +167,7 @@ NEXT_STEPS: dict[str, list[str]] = {
 }
 
 
-def build_repo_audit(repo: Path, generated_at: str | None = None) -> RepoAudit:
+def build_repo_audit(repo: Path, generated_at: str | None = None, audit_profile: AuditProfile | None = None) -> RepoAudit:
     generated_at = generated_at or today_iso()
     readme_text = _readme_text(repo)
 
@@ -185,6 +187,7 @@ def build_repo_audit(repo: Path, generated_at: str | None = None) -> RepoAudit:
         _ci_check(repo),
         _release_tags_check(repo),
     ]
+    checks = _apply_profile(checks, audit_profile)
 
     counted = [check for check in checks if check.status != "skip"]
     passed = sum(1 for check in counted if check.status == "pass")
@@ -192,6 +195,8 @@ def build_repo_audit(repo: Path, generated_at: str | None = None) -> RepoAudit:
         "pass": passed,
         "warn": sum(1 for check in counted if check.status == "warn"),
         "fail": sum(1 for check in counted if check.status == "fail"),
+        "qualified": sum(1 for check in counted if check.status == "qualified"),
+        "profile_skipped": sum(1 for check in counted if check.status == "profile_skip"),
         "skipped": len(checks) - len(counted),
         "total": len(counted),
         "percent": round(100 * passed / len(counted)) if counted else 0,
@@ -205,7 +210,8 @@ def build_repo_audit(repo: Path, generated_at: str | None = None) -> RepoAudit:
         score=score,
         checks=checks,
         recommended_action=_recommended_action(checks),
-        warnings=[f"{check.name}: {check.detail}" for check in checks if check.status in {"warn", "fail"}],
+        warnings=[f"{check.name}: {check.detail}" for check in checks if check.status in {"warn", "fail", "qualified", "profile_skip"}],
+        profile=audit_profile,
     )
 
 
@@ -213,18 +219,32 @@ def render_audit_markdown(audit: RepoAudit) -> str:
     lines = [
         "# Repository Audit",
         "",
-        "A zero-config maintainer-readiness check. It reads only files the repository already has; no analytics exports are required.",
+        (
+            "A local maintainer-readiness check using repository files plus explicit repository-owned context from `open-growth-loop.toml`."
+            if audit.profile
+            else "A zero-config maintainer-readiness check. It reads only files the repository already has; no analytics exports are required."
+        ),
         "",
+        *_profile_markdown(audit.profile),
         "## Scorecard",
         "",
         *key_value_table(
             [
                 ("Repository", audit.project_name),
                 ("Generated at", audit.generated_at),
-                ("Overall status", status_label("fail" if audit.score["fail"] else ("warn" if audit.score["warn"] else "pass"))),
+                (
+                    "Overall status",
+                    status_label(
+                        "fail"
+                        if audit.score["fail"]
+                        else ("warn" if audit.score["warn"] or audit.score["qualified"] or audit.score["profile_skipped"] else "pass")
+                    ),
+                ),
                 ("Score", f"{audit.score['percent']}% ({audit.score['pass']} of {audit.score['total']} checks pass)"),
                 ("Warnings", audit.score["warn"]),
                 ("Failures", audit.score["fail"]),
+                ("Qualified", audit.score["qualified"]),
+                ("Profile-skipped", audit.score["profile_skipped"]),
                 ("Skipped", audit.score["skipped"]),
             ]
         ),
@@ -320,10 +340,66 @@ def _recommended_action(checks: list[AuditCheck]) -> AuditAction | None:
     by_id = {check.id: check for check in checks}
     for check_id in RECOMMENDATION_ORDER:
         check = by_id.get(check_id)
-        if check is None or check.status in {"pass", "skip"}:
+        if check is None or check.status in {"pass", "skip", "qualified", "profile_skip"}:
             continue
         return action_from_check(check)
     return None
+
+
+def _apply_profile(checks: list[AuditCheck], profile: AuditProfile | None) -> list[AuditCheck]:
+    if profile is None:
+        return checks
+
+    output: list[AuditCheck] = []
+    for check in checks:
+        disposition = profile.checks.get(check.id)
+        if disposition is None or check.status != "warn":
+            output.append(check)
+            continue
+
+        if disposition.disposition == "skip":
+            output.append(
+                AuditCheck(
+                    id=check.id,
+                    category=check.category,
+                    name=check.name,
+                    status="profile_skip",
+                    detail=f"{check.detail} Repository profile skipped this check: {disposition.reason}",
+                    recommendation="",
+                )
+            )
+            continue
+
+        output.append(
+            AuditCheck(
+                id=check.id,
+                category=check.category,
+                name=check.name,
+                status="qualified",
+                detail=f"{check.detail} Repository profile qualified this check: {disposition.reason}",
+                recommendation=check.recommendation,
+            )
+        )
+    return output
+
+
+def _profile_markdown(profile: AuditProfile | None) -> list[str]:
+    if profile is None:
+        return []
+    return [
+        "## Repository Context",
+        "",
+        *key_value_table(
+            [
+                ("Declared purpose", profile.purpose),
+                ("Profile source", "repository-owned `open-growth-loop.toml`"),
+                ("Declared dispositions", len(profile.checks)),
+            ]
+        ),
+        "",
+        "This context is supplied by the repository owner and is not independently verified. Profile-qualified and profile-skipped checks remain in the score denominator and never count as passes; checks skipped because evidence is unavailable are reported separately.",
+        "",
+    ]
 
 
 def _readme_text(repo: Path) -> str:

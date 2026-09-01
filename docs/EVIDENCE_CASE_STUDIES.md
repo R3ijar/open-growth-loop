@@ -8,7 +8,7 @@ The correct result is sometimes to reject the tool's recommendation. A rejected 
 
 | Case | Exact repository state | Initial recommendation | Human evidence review | Outcome in Open Growth Loop |
 | --- | --- | --- | --- | --- |
-| Purpose-aware onboarding | [`pypa/sampleproject@621e497`](https://github.com/pypa/sampleproject/commit/621e4974ca25ce531773def586ba3ed8e736b3fc) | Add an Install section | Rejected: this is an editable packaging example, not a normal end-user package README | Documented limitation; no speculative detector added |
+| Purpose-aware onboarding | [`pypa/sampleproject@621e497`](https://github.com/pypa/sampleproject/commit/621e4974ca25ce531773def586ba3ed8e736b3fc) | Add an Install section | Rejected: this is an editable packaging example, not a normal end-user package README | Explicit purpose profiles implemented; no speculative detector added |
 | Release notes versus changelog | [`sindresorhus/p-map@bc26cf0`](https://github.com/sindresorhus/p-map/commit/bc26cf03f81292325236a1188063dac8e7a4de0f) | Add `CHANGELOG.md` | Deferred: GitHub release notes already describe the latest change and link the comparison | Follow-up experiment defined; no claim that a file is required |
 | Recovered CI and embedded disclosure guidance | [`BurntSushi/ripgrep@3fce3b5`](https://github.com/BurntSushi/ripgrep/commit/3fce3b5bb0236da2df87599ed666977333c162bfc9) | Investigate failing CI | Rejected: the selected scheduled failure was followed by six successful scheduled runs; README already documents private vulnerability reporting | Two regression-tested fixes shipped |
 
@@ -57,7 +57,7 @@ For a normal installable library, the heuristic is reasonable. For an educationa
 
 **Rejected for this repository.** No target-repository issue or pull request is justified by this evidence.
 
-Open Growth Loop does not add a broad “sample project” exception because names and keywords are weak proxies for intent. A future purpose profile or maintainer-supplied policy file is safer than guessing.
+Open Growth Loop does not add a broad “sample project” exception because names and keywords are weak proxies for intent. Instead, the repository-purpose profile implemented for v0.3.0 lets a maintainer supply bounded context for `example`, `template`, or `monorepo` repositories. The declared reason stays visible and unverified, the check remains in the denominator, and it never becomes a pass. A runnable fixture and regression tests reproduce this decision boundary without claiming that `pypa/sampleproject` uses or endorses the tool.
 
 ## Case 2: release notes versus a changelog file
 
@@ -136,5 +136,5 @@ They do **not** establish adoption, endorsement, maintainer agreement, time save
 These are Open Growth Loop experiments, not requests for the inspected projects:
 
 1. [Add bounded latest-release-body evidence](https://github.com/R3ijar/open-growth-loop/issues/7) and test whether substantive hosted notes should qualify the changelog decision.
-2. [Design an optional repository-purpose profile](https://github.com/R3ijar/open-growth-loop/issues/8) that can identify examples, templates, monorepos, and externally documented projects without guessing from names.
+2. Completed: [the optional repository-purpose profile](https://github.com/R3ijar/open-growth-loop/issues/8) now handles examples, templates, and monorepos without guessing from names or inflating scores.
 3. Ask maintainers to challenge these verdicts through the [structured field test](ADOPTION.md) before turning any case into an adoption claim.

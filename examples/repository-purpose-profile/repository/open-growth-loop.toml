@@ -1,0 +1,6 @@
+[audit_profile]
+purpose = "example"
+
+[audit_profile.checks.install]
+disposition = "qualify"
+reason = "This repository is editable packaging-tutorial material; installation is taught by the surrounding tutorial."

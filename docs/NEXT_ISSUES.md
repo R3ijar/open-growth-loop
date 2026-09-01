@@ -38,6 +38,10 @@ Acceptance criteria:
 
 ## Completed Recently
 
+### Add A Repository-Purpose Profile
+
+Implemented optional `standard`, `example`, `template`, and `monorepo` context in `open-growth-loop.toml`. Qualified and profile-skipped warnings retain their declared reason, remain visible in Markdown and JSON, stay in the score denominator, and never override essential README or license failures.
+
 ### Add A Release Evidence Checklist
 
 Implemented in the planner, generated prompt, docs, and tests.

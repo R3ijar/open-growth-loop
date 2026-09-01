@@ -44,6 +44,19 @@ Thirty seconds later, `outbox/audit/latest-audit.md` holds a scorecard over 14 h
 
 Every audit recommends exactly **one next action**, ordered by how much each gap hurts a new visitor, with a step checklist and a Codex-ready prompt — so the next focused change is one paste away. Reports stay local; add `outbox/` to your `.gitignore` if you don't want to keep them.
 
+### Context-aware without self-certification
+
+An example repository, template, or monorepo should not receive the same onboarding advice as a conventional package. An optional [repository purpose profile](docs/REPOSITORY_PROFILES.md) lets maintainers qualify or explicitly skip a context-sensitive check with a mandatory reason. Open Growth Loop never guesses purpose from a repository name, and profiles cannot override README or license failures. Qualified and profile-skipped checks stay visible, remain in the score denominator, and never count as passes.
+
+```toml
+[audit_profile]
+purpose = "example"
+
+[audit_profile.checks.install]
+disposition = "qualify"
+reason = "This repository is editable tutorial material; installation is taught by the surrounding tutorial."
+```
+
 And when the gap is mechanical, you don't even have to write the file:
 
 ```bash
@@ -128,7 +141,7 @@ Weak evidence is labeled insufficient instead of being spun into a win. The goal
 
 | Command | What it does |
 | --- | --- |
-| `ogl audit` | Zero-config repository readiness scorecard with one recommended action. |
+| `ogl audit` | Repository readiness scorecard with one recommended action and optional repository-owned purpose context. |
 | `ogl steward` | Combine the audit, local Git state, and optional read-only GitHub evidence into one maintainer brief. |
 | `ogl fix` | Scaffold the recommended action when it is mechanical; hand off a Codex prompt when it is not. |
 | `ogl init` / `ogl validate` | Create and check the local data CSVs. |
@@ -151,10 +164,11 @@ Open Growth Loop is designed around aggregate inputs. The event importer accepts
 ## Documentation
 
 - [Usage guide](docs/USAGE.md) — installation, every command, data files, configuration, and decision rules.
+- [Repository purpose profiles](docs/REPOSITORY_PROFILES.md) — explicit context, validation rules, score integrity, and a runnable audit fixture.
 - [GitHub Action reference](docs/GITHUB_ACTION.md) — inputs, outputs, strict mode, and scheduled audits.
 - [Example workflow](docs/EXAMPLE_WORKFLOW.md) — a full walkthrough with the bundled sample CSVs.
 - [Report gallery](docs/REPORT_GALLERY.md) — what the generated reports look like.
-- [Runnable examples](examples/README.md) — five synthetic workspaces with documented expected plans.
+- [Runnable examples](examples/README.md) — synthetic planner workspaces and a context-aware repository-audit fixture.
 - [Dogfooding](docs/DOGFOODING.md) — how this repository maintains itself with its own loop.
 - [Public compatibility study](docs/COMPATIBILITY_STUDY.md) — a transparent ten-repository run, including two defects it exposed and the limits of the evidence.
 - [Evidence-backed case studies](docs/EVIDENCE_CASE_STUDIES.md) — three repository-specific decision reviews, including rejected recommendations and two regression-tested fixes.
@@ -164,7 +178,7 @@ Open Growth Loop is designed around aggregate inputs. The event importer accepts
 
 ## Project Status
 
-Version on `main`: v0.2.1 plus unreleased fixes. See [GitHub Releases](https://github.com/R3ijar/open-growth-loop/releases) for the latest published version. The project is early and is actively seeking maintainer design partners. The zero-config audit, steward brief, fix scaffolds, and GitHub Action are ready for field testing; the CSV-driven loop remains available for small maintainer workflows.
+Version prepared on `main`: v0.3.0. See [GitHub Releases](https://github.com/R3ijar/open-growth-loop/releases) for the latest published version. The project is early and is actively seeking maintainer design partners. The repository audit, purpose profiles, steward brief, fix scaffolds, and GitHub Action are ready for field testing; the CSV-driven loop remains available for small maintainer workflows.
 
 ## Contributing
 

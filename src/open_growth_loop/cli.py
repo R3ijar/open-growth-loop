@@ -7,7 +7,7 @@ from pathlib import Path
 
 from .audit import action_from_check, build_repo_audit, render_audit_markdown, render_audit_prompt, write_audit_reports
 from .candidates import build_candidates, render_candidates_markdown
-from .config import GrowthConfig, load_config
+from .config import AuditProfile, GrowthConfig, load_config
 from .doctor import build_doctor_report, write_doctor_reports
 from .events import import_aggregate_events
 from .experiments import (
@@ -211,11 +211,11 @@ def main() -> None:
     elif args.command == "validate":
         run_validate(workspace, config)
     elif args.command == "audit":
-        run_audit(args, workspace)
+        run_audit(args, workspace, config)
     elif args.command == "fix":
-        run_fix(args, workspace)
+        run_fix(args, workspace, config)
     elif args.command == "steward":
-        run_steward(args, workspace)
+        run_steward(args, workspace, config)
     elif args.command == "doctor":
         run_doctor(args, workspace, config)
     elif args.command == "freshness":
@@ -259,6 +259,15 @@ def add_workspace_argument(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--workspace", default="", help="Project workspace containing data/ and outbox/.")
 
 
+def _audit_profile_for(repo: Path, workspace: Path, config: GrowthConfig) -> AuditProfile | None:
+    if repo == workspace:
+        return config.audit_profile
+    try:
+        return load_config(repo).audit_profile
+    except ValueError as exc:
+        raise SystemExit(str(exc)) from exc
+
+
 def run_status(workspace: Path, config: GrowthConfig) -> None:
     inventory, search_rows, events = default_data_paths(workspace)
     ledger = first_existing([workspace / "data" / "experiments.csv", workspace / "data" / "experiments.example.csv"])
@@ -271,6 +280,7 @@ def run_status(workspace: Path, config: GrowthConfig) -> None:
         "action_memory": str(default_memory_path(workspace)),
         "config": str(config.path) if config.path else "",
         "thresholds": asdict(config.thresholds),
+        "audit_profile": asdict(config.audit_profile) if config.audit_profile else None,
         "latest_plan": str(workspace / "outbox" / "plans" / "latest-plan.json"),
     }
     print(json.dumps(payload, indent=2))
@@ -288,11 +298,12 @@ def run_validate(workspace: Path, config: GrowthConfig) -> None:
         raise SystemExit(1)
 
 
-def run_audit(args: argparse.Namespace, workspace: Path) -> None:
+def run_audit(args: argparse.Namespace, workspace: Path, config: GrowthConfig) -> None:
     repo = Path(args.repo).resolve() if args.repo else workspace
     if not repo.is_dir():
         raise SystemExit(f"Repository directory not found: {repo}")
-    audit = build_repo_audit(repo)
+    audit_profile = _audit_profile_for(repo, workspace, config)
+    audit = build_repo_audit(repo, audit_profile=audit_profile)
     md_path, md_history, json_path, json_history = write_audit_reports(audit, workspace / "outbox" / "audit")
     if args.summary:
         summary_path = Path(args.summary)
@@ -318,11 +329,12 @@ def run_audit(args: argparse.Namespace, workspace: Path) -> None:
         raise SystemExit(1)
 
 
-def run_fix(args: argparse.Namespace, workspace: Path) -> None:
+def run_fix(args: argparse.Namespace, workspace: Path, config: GrowthConfig) -> None:
     repo = Path(args.repo).resolve() if args.repo else workspace
     if not repo.is_dir():
         raise SystemExit(f"Repository directory not found: {repo}")
-    audit = build_repo_audit(repo)
+    audit_profile = _audit_profile_for(repo, workspace, config)
+    audit = build_repo_audit(repo, audit_profile=audit_profile)
     by_id = {check.id: check for check in audit.checks}
 
     if args.list_fixes:
@@ -358,11 +370,11 @@ def run_fix(args: argparse.Namespace, workspace: Path) -> None:
     if result.status in {"manual", "blocked"}:
         payload["prompt"] = render_audit_prompt(audit, action_from_check(check))
     if result.status == "created":
-        payload["score_percent_after"] = build_repo_audit(repo).score["percent"]
+        payload["score_percent_after"] = build_repo_audit(repo, audit_profile=audit_profile).score["percent"]
     print(json.dumps(payload, indent=2))
 
 
-def run_steward(args: argparse.Namespace, workspace: Path) -> None:
+def run_steward(args: argparse.Namespace, workspace: Path, config: GrowthConfig) -> None:
     repo = Path(args.repo).resolve() if args.repo else workspace
     if not repo.is_dir():
         raise SystemExit(f"Repository directory not found: {repo}")
@@ -371,7 +383,7 @@ def run_steward(args: argparse.Namespace, workspace: Path) -> None:
         github = read_github_snapshot(github_repo, limit=getattr(args, "github_limit", 50)) if github_repo else None
     except ValueError as exc:
         raise SystemExit(str(exc)) from exc
-    brief = build_steward_brief(repo, github=github)
+    brief = build_steward_brief(repo, github=github, audit_profile=_audit_profile_for(repo, workspace, config))
     payload: dict[str, object] = {
         "status": brief.status,
         "repo": brief.repo,
@@ -839,10 +851,10 @@ def generate_demo_reports(workspace: Path, config: GrowthConfig, include_tests: 
     doctor = build_doctor_report(workspace, config, include_tests=include_tests)
     doctor_md, _, doctor_json, _ = write_doctor_reports(doctor, workspace / "outbox" / "doctor")
 
-    audit = build_repo_audit(workspace)
+    audit = build_repo_audit(workspace, audit_profile=config.audit_profile)
     audit_md, _, audit_json, _ = write_audit_reports(audit, workspace / "outbox" / "audit")
 
-    steward = build_steward_brief(workspace)
+    steward = build_steward_brief(workspace, audit_profile=config.audit_profile)
     steward_md, _, steward_json, _ = write_steward_reports(steward, workspace / "outbox" / "steward")
 
     report_index = build_report_index(workspace)

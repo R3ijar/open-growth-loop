@@ -82,6 +82,49 @@ class ConfigTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 load_config(root)
 
+    def test_loads_repository_owned_audit_profile(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            (root / "open-growth-loop.toml").write_text(
+                "[audit_profile]\n"
+                'purpose = "example"\n'
+                "\n[audit_profile.checks.install]\n"
+                'disposition = "qualify"\n'
+                'reason = "Install commands are annotated tutorial material, not end-user onboarding."\n',
+                encoding="utf-8",
+            )
+
+            profile = load_config(root).audit_profile
+
+        self.assertIsNotNone(profile)
+        assert profile is not None
+        self.assertEqual(profile.purpose, "example")
+        self.assertEqual(profile.checks["install"].disposition, "qualify")
+        self.assertIn("tutorial material", profile.checks["install"].reason)
+
+    def test_rejects_invalid_or_unsafe_audit_profile(self) -> None:
+        cases = {
+            "unknown purpose": "[audit_profile]\npurpose = \"product\"\n",
+            "unknown check": (
+                "[audit_profile]\npurpose = \"example\"\n"
+                "[audit_profile.checks.popularity]\ndisposition = \"skip\"\nreason = \"Not applicable.\"\n"
+            ),
+            "essential override": (
+                "[audit_profile]\npurpose = \"template\"\n"
+                "[audit_profile.checks.license]\ndisposition = \"skip\"\nreason = \"Template only.\"\n"
+            ),
+            "missing reason": (
+                "[audit_profile]\npurpose = \"monorepo\"\n"
+                "[audit_profile.checks.examples]\ndisposition = \"qualify\"\nreason = \"\"\n"
+            ),
+        }
+        for name, payload in cases.items():
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as temp_dir:
+                root = Path(temp_dir)
+                (root / "open-growth-loop.toml").write_text(payload, encoding="utf-8")
+                with self.assertRaises(ValueError):
+                    load_config(root)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -3,6 +3,7 @@ from __future__ import annotations
 import unittest
 from pathlib import Path
 
+from open_growth_loop.audit import build_repo_audit, render_audit_markdown
 from open_growth_loop.config import load_config
 from open_growth_loop.planner import build_daily_plan, default_data_paths
 from open_growth_loop.workspace import validate_workspace
@@ -11,6 +12,20 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class ExampleWorkspaceTests(unittest.TestCase):
+    def test_repository_purpose_fixture_qualifies_install_as_documented(self) -> None:
+        repository = ROOT / "examples" / "repository-purpose-profile" / "repository"
+        config = load_config(repository)
+
+        audit = build_repo_audit(repository, generated_at="2026-09-01", audit_profile=config.audit_profile)
+        markdown = render_audit_markdown(audit)
+
+        by_id = {check.id: check for check in audit.checks}
+        self.assertEqual(config.audit_profile.purpose, "example")
+        self.assertEqual(by_id["install"].status, "qualified")
+        self.assertEqual(audit.score["percent"], 92)
+        self.assertIsNone(audit.recommended_action)
+        self.assertIn("editable packaging-tutorial material", markdown)
+
     def test_example_workspaces_validate_and_plan_as_documented(self) -> None:
         expectations = {
             "staged-release-check": ("release_evidence", "/docs/configuration-checklist", "release_evidence"),

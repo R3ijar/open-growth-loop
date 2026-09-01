@@ -13,6 +13,38 @@ except ModuleNotFoundError:  # pragma: no cover - exercised on Python 3.10
 SCHEMA_NAMES = {"content_inventory", "search_rows", "events", "experiments", "action_memory"}
 SchemaAliases = Mapping[str, Mapping[str, str]]
 
+AUDIT_PURPOSES = {"standard", "example", "template", "monorepo"}
+AUDIT_CHECK_IDS = {
+    "readme",
+    "license",
+    "install",
+    "quickstart",
+    "docs",
+    "examples",
+    "contributing",
+    "code_of_conduct",
+    "security_policy",
+    "issue_templates",
+    "pr_template",
+    "changelog",
+    "ci",
+    "release_tags",
+}
+AUDIT_DISPOSITIONS = {"qualify", "skip"}
+ESSENTIAL_AUDIT_CHECK_IDS = {"readme", "license"}
+
+
+@dataclass(frozen=True)
+class AuditDisposition:
+    disposition: str
+    reason: str
+
+
+@dataclass(frozen=True)
+class AuditProfile:
+    purpose: str
+    checks: dict[str, AuditDisposition]
+
 
 @dataclass(frozen=True)
 class GrowthThresholds:
@@ -30,6 +62,7 @@ class GrowthConfig:
     path: Path | None
     schema_aliases: dict[str, dict[str, str]]
     thresholds: GrowthThresholds = GrowthThresholds()
+    audit_profile: AuditProfile | None = None
 
     def aliases_for(self, schema_name: str) -> dict[str, str]:
         return dict(self.schema_aliases.get(schema_name, {}))
@@ -55,7 +88,8 @@ def load_config(workspace: Path, config_path: Path | None = None) -> GrowthConfi
         aliases[schema_name] = _normalize_alias_mapping(raw_mapping, schema_name)
 
     thresholds = _load_thresholds(payload.get("thresholds", {}))
-    return GrowthConfig(path=path, schema_aliases=aliases, thresholds=thresholds)
+    audit_profile = _load_audit_profile(payload.get("audit_profile"))
+    return GrowthConfig(path=path, schema_aliases=aliases, thresholds=thresholds, audit_profile=audit_profile)
 
 
 def apply_column_aliases(row: Mapping[str, str], aliases: Mapping[str, str] | None) -> dict[str, str]:
@@ -134,6 +168,53 @@ def _load_thresholds(raw_thresholds: object) -> GrowthThresholds:
         stale_shipped_days=stale_shipped_days,
         freshness_warn_days=freshness_warn_days,
     )
+
+
+def _load_audit_profile(raw_profile: object) -> AuditProfile | None:
+    if raw_profile is None:
+        return None
+    if not isinstance(raw_profile, dict):
+        raise ValueError("audit_profile must be a table in open-growth-loop.toml")
+
+    unknown = sorted(set(raw_profile) - {"purpose", "checks"})
+    if unknown:
+        raise ValueError(f"unknown audit_profile setting: {', '.join(unknown)}")
+
+    purpose = str(raw_profile.get("purpose") or "").strip().lower()
+    if purpose not in AUDIT_PURPOSES:
+        allowed = ", ".join(sorted(AUDIT_PURPOSES))
+        raise ValueError(f"audit_profile.purpose must be one of: {allowed}")
+
+    raw_checks = raw_profile.get("checks", {})
+    if not isinstance(raw_checks, dict):
+        raise ValueError("audit_profile.checks must be a table")
+
+    checks: dict[str, AuditDisposition] = {}
+    for raw_check_id, raw_disposition in raw_checks.items():
+        check_id = str(raw_check_id).strip().lower()
+        if check_id not in AUDIT_CHECK_IDS:
+            raise ValueError(f"unknown audit check in audit_profile.checks: {check_id}")
+        if check_id in ESSENTIAL_AUDIT_CHECK_IDS:
+            raise ValueError(f"audit_profile.checks.{check_id} cannot override an essential open-source check")
+        if not isinstance(raw_disposition, dict):
+            raise ValueError(f"audit_profile.checks.{check_id} must be a table")
+
+        unknown_fields = sorted(set(raw_disposition) - {"disposition", "reason"})
+        if unknown_fields:
+            raise ValueError(f"unknown audit_profile.checks.{check_id} setting: {', '.join(unknown_fields)}")
+
+        disposition = str(raw_disposition.get("disposition") or "").strip().lower()
+        if disposition not in AUDIT_DISPOSITIONS:
+            allowed = ", ".join(sorted(AUDIT_DISPOSITIONS))
+            raise ValueError(f"audit_profile.checks.{check_id}.disposition must be one of: {allowed}")
+        reason = str(raw_disposition.get("reason") or "").strip()
+        if not reason:
+            raise ValueError(f"audit_profile.checks.{check_id}.reason must explain the repository-specific context")
+        if len(reason) > 300:
+            raise ValueError(f"audit_profile.checks.{check_id}.reason must be 300 characters or fewer")
+        checks[check_id] = AuditDisposition(disposition=disposition, reason=reason)
+
+    return AuditProfile(purpose=purpose, checks=checks)
 
 
 def _positive_int(value: object, name: str) -> int:

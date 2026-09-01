@@ -35,6 +35,7 @@
 - Installable `repo-steward` skill with explicit remote-mutation boundaries.
 - Public design-partner field test and verifiable adoption ledger.
 - Optional read-only GitHub evidence adapter for issues, pull requests, CI, and releases.
+- Repository-owned purpose profiles that qualify context-sensitive audit checks without guessing or score inflation.
 - Optional GitHub issue creation from reviewed drafts.
 - Optional static-site sitemap checks.
 - Optional package registry metadata checks.

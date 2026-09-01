@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -10,6 +11,7 @@ from open_growth_loop.audit import (
     render_audit_prompt,
     write_audit_reports,
 )
+from open_growth_loop.config import load_config
 
 HEALTHY_README = """# Example Project
 
@@ -138,6 +140,72 @@ class AuditTests(unittest.TestCase):
 
         self.assertIn("ogl init", markdown)
         self.assertEqual(render_audit_prompt(audit), "")
+
+    def test_example_profile_qualifies_install_without_claiming_a_pass(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            _write_healthy_repo(root)
+            readme = (root / "README.md").read_text(encoding="utf-8")
+            readme = readme.replace("## Install\n\n```bash\npip install example-project\n```\n\n", "")
+            (root / "README.md").write_text(readme, encoding="utf-8")
+            (root / "open-growth-loop.toml").write_text(
+                "[audit_profile]\n"
+                'purpose = "example"\n'
+                "\n[audit_profile.checks.install]\n"
+                'disposition = "qualify"\n'
+                'reason = "This repository is editable packaging-tutorial material; its install command is taught in the surrounding tutorial."\n',
+                encoding="utf-8",
+            )
+            profile = load_config(root).audit_profile
+
+            audit = build_repo_audit(root, generated_at="2026-09-01", audit_profile=profile)
+            markdown = render_audit_markdown(audit)
+            _, _, json_path, _ = write_audit_reports(audit, root / "outbox" / "audit")
+            json_payload = json.loads(json_path.read_text(encoding="utf-8"))
+
+        by_id = {check.id: check for check in audit.checks}
+        self.assertEqual(by_id["install"].status, "qualified")
+        self.assertIn("repository profile qualified", by_id["install"].detail.lower())
+        self.assertEqual(audit.score["qualified"], 1)
+        self.assertEqual(audit.score["pass"], 12)
+        self.assertEqual(audit.score["total"], 13)
+        self.assertEqual(audit.score["percent"], 92)
+        self.assertIsNone(audit.recommended_action)
+        self.assertIn("## Repository Context", markdown)
+        self.assertIn("not independently verified", markdown)
+        self.assertIn("QUALIFIED", markdown)
+        self.assertEqual(json_payload["profile"]["purpose"], "example")
+        json_checks = {check["id"]: check for check in json_payload["checks"]}
+        self.assertEqual(json_checks["install"]["status"], "qualified")
+
+    def test_profile_skip_remains_in_score_and_default_behavior_is_unchanged(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            _write_healthy_repo(root)
+            readme = (root / "README.md").read_text(encoding="utf-8")
+            readme = readme.replace("## Install\n\n```bash\npip install example-project\n```\n\n", "")
+            (root / "README.md").write_text(readme, encoding="utf-8")
+
+            default_audit = build_repo_audit(root, generated_at="2026-09-01")
+            (root / "open-growth-loop.toml").write_text(
+                "[audit_profile]\n"
+                'purpose = "template"\n'
+                "\n[audit_profile.checks.install]\n"
+                'disposition = "skip"\n'
+                'reason = "Generated projects own their install instructions; this repository only supplies source templates."\n',
+                encoding="utf-8",
+            )
+            profile = load_config(root).audit_profile
+            profiled_audit = build_repo_audit(root, generated_at="2026-09-01", audit_profile=profile)
+
+        default_by_id = {check.id: check for check in default_audit.checks}
+        profiled_by_id = {check.id: check for check in profiled_audit.checks}
+        self.assertEqual(default_by_id["install"].status, "warn")
+        self.assertEqual(default_audit.recommended_action.check_id, "install")
+        self.assertEqual(profiled_by_id["install"].status, "profile_skip")
+        self.assertEqual(profiled_audit.score["profile_skipped"], 1)
+        self.assertEqual(profiled_audit.score["percent"], 92)
+        self.assertIsNone(profiled_audit.recommended_action)
 
     def test_write_audit_reports_writes_latest_and_history(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

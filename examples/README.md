@@ -1,4 +1,10 @@
-# Example Workspaces
+# Examples
+
+## Repository audit context
+
+- **Repository purpose profile** ([`repository-purpose-profile`](repository-purpose-profile/README.md)): a runnable audit fixture showing how explicit example-repository context qualifies an Install warning without turning it into a pass or inflating the score.
+
+## Planner workspaces
 
 These workspaces use fake aggregate data to show how Open Growth Loop behaves in common OSS maintainer workflows.
 

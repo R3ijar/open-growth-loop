@@ -7,6 +7,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 
 from .audit import AuditAction, RepoAudit, build_repo_audit
+from .config import AuditProfile
 from .github_evidence import GitHubItem, GitHubSnapshot
 from .io_utils import today_iso, write_json_report, write_text_report
 from .reporting import collapsible_section, key_value_table, status_label
@@ -46,13 +47,22 @@ class StewardBrief:
     action: StewardAction
 
 
-def build_steward_brief(repo: Path, generated_at: str | None = None, github: GitHubSnapshot | None = None) -> StewardBrief:
+def build_steward_brief(
+    repo: Path,
+    generated_at: str | None = None,
+    github: GitHubSnapshot | None = None,
+    audit_profile: AuditProfile | None = None,
+) -> StewardBrief:
     generated_at = generated_at or today_iso()
-    audit = build_repo_audit(repo, generated_at=generated_at)
+    audit = build_repo_audit(repo, generated_at=generated_at, audit_profile=audit_profile)
     git = _read_git_snapshot(repo)
     action = _select_action(audit, git, github)
     remote_warn = bool(github and (not github.available or github.failing_default_branch_runs))
-    status = "fail" if audit.score["fail"] else ("warn" if audit.score["warn"] or git.clean is False or remote_warn else "pass")
+    status = (
+        "fail"
+        if audit.score["fail"]
+        else ("warn" if audit.score["warn"] or audit.score["qualified"] or audit.score["profile_skipped"] or git.clean is False or remote_warn else "pass")
+    )
     return StewardBrief(generated_at, str(repo), repo.name or str(repo), status, audit, git, github, action)
 
 

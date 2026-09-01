@@ -2,10 +2,12 @@
 
 All notable changes to Open Growth Loop are documented here.
 
-## Unreleased
+## 0.3.0 - 2026-09-01
 
 ### Added
 
+- Optional repository-owned audit purpose profiles for `standard`, `example`, `template`, and `monorepo` repositories. Maintainers can qualify or explicitly skip context-sensitive warnings with bounded human-readable reasons; dispositions remain visible in Markdown and JSON, stay in the score denominator, and never count as passes. README and license checks cannot be overridden.
+- A runnable repository-purpose fixture modeled on editable packaging-tutorial material, plus documentation for profile validation, trust boundaries, and score integrity.
 - Three repository-specific decision-quality case studies with exact SHAs, raw recommendations, counterevidence, verdicts, and explicit non-adoption limits.
 
 ### Fixed

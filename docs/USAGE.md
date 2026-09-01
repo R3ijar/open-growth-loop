@@ -86,6 +86,19 @@ ogl audit --repo path/to/other-repo       # audit another directory
 ogl audit --summary report.md --strict    # append Markdown to a file; exit 1 on essential failures
 ```
 
+For an example, template, or monorepo whose intended surfaces differ from a conventional package, declare optional repository-owned context in `open-growth-loop.toml`:
+
+```toml
+[audit_profile]
+purpose = "example"
+
+[audit_profile.checks.install]
+disposition = "qualify"
+reason = "This repository is editable tutorial material; installation is taught by the surrounding tutorial."
+```
+
+Profiles do not create passes. `qualify` and `skip` dispositions remain visible, stay in the score denominator, and defer the corresponding warning as the selected action. README and license are essential and cannot be overridden. See [Repository Purpose Profiles](REPOSITORY_PROFILES.md) for the complete schema, integrity rules, and runnable fixture.
+
 Scaffold the audit's recommended action when it is mechanical:
 
 ```bash
